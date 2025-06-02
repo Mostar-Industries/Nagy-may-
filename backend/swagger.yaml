@@ -1,0 +1,254 @@
+openapi: 3.1.0
+info:
+  title: MNTRK Unified API
+  version: 1.0.1
+  description: Full unified API combining Core MNTRK API and AI Agent endpoints.
+servers:
+  - url: /api/v1
+
+paths:
+
+  # Core MNTRK API
+  /api/habitats:
+    post:
+      summary: Analyze environmental data for habitat prediction
+      operationId: analyze_habitats
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HabitatAnalysisRequest'
+      responses:
+        '200':
+          description: Habitat prediction result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitatAnalysisResponse'
+
+  /api/detection-patterns:
+    post:
+      summary: Record detection patterns of Mastomys Natalensis
+      operationId: record_detection_patterns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetectionPattern'
+      responses:
+        '200':
+          description: Detection recorded
+
+  /api/anomaly-detection:
+    post:
+      summary: Detect anomalies in environmental data
+      operationId: detect_anomalies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnomalyDetectionRequest'
+      responses:
+        '200':
+          description: Anomalies detected
+
+  /api/modeling/predictive:
+    post:
+      summary: Predictive modeling execution
+      operationId: predictive_modeling
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictiveModelRequest'
+      responses:
+        '200':
+          description: Modeling complete
+
+  /api/temporal-analysis:
+    post:
+      summary: Analyze temporal patterns
+      operationId: analyze_temporal_patterns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemporalAnalysisRequest'
+      responses:
+        '200':
+          description: Temporal analysis complete
+
+  /api/predict-movements:
+    get:
+      summary: Predict Mastomys movements
+      operationId: predict_movements
+      parameters:
+        - name: latitude
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: longitude
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Movements predicted
+
+  # AI AGENT API
+  /ai/habitats:
+    post:
+      summary: AI Agent habitat analysis
+      operationId: ai_habitats_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIHabitatAnalysisRequest'
+      responses:
+        '200':
+          description: AI habitat analysis complete
+
+  /ai/detections:
+    post:
+      summary: AI Agent detection patterns
+      operationId: ai_detections_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIDetectionPattern'
+      responses:
+        '200':
+          description: AI detection processed
+
+  /ai/video/stream-analyze:
+    post:
+      summary: AI Agent video stream analysis
+      operationId: ai_video_stream_analyze_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoStreamRequest'
+      responses:
+        '200':
+          description: Video stream analyzed
+
+  /ai/modeling:
+    post:
+      summary: AI Agent model training
+      operationId: ai_modeling_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelTrainingRequest'
+      responses:
+        '200':
+          description: Model training completed
+
+  /ai/rag-query:
+    post:
+      summary: AI Retrieval-Augmented Generation (RAG)
+      operationId: ai_rag_query_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RAGQueryRequest'
+      responses:
+        '200':
+          description: RAG query executed
+
+components:
+  schemas:
+
+    ##################### Core API Schemas #####################
+    HabitatAnalysisRequest:
+      type: object
+      properties:
+        satellite_data: { type: string, format: base64 }
+        environmental_data: { type: object }
+        geographic_coordinates: { type: object }
+        analysis_parameters: { type: object }
+
+    HabitatAnalysisResponse:
+      type: object
+      properties:
+        id: { type: integer }
+        suitability_score: { type: number }
+        risk_factors: { type: array, items: { type: string } }
+
+    DetectionPattern:
+      type: object
+      properties:
+        image_url: { type: string }
+
+    AnomalyDetectionRequest:
+      type: object
+      properties:
+        input_file: { type: string, format: base64 }
+        detection_method: { type: string }
+        parameters: { type: object }
+
+    PredictiveModelRequest:
+      type: object
+      properties:
+        model_type: { type: string }
+        training_data: { type: string, format: base64 }
+
+    TemporalAnalysisRequest:
+      type: object
+      properties:
+        dataset_url: { type: string }
+        time_frame: { type: string }
+
+    ##################### Agent API Schemas #####################
+    AIHabitatAnalysisRequest:
+      type: object
+      properties:
+        region: { type: string }
+        satellite_image_url: { type: string }
+        environmental_data: { type: object }
+
+    AIDetectionPattern:
+      type: object
+      properties:
+        image_url: { type: string }
+
+    VideoStreamRequest:
+      type: object
+      properties:
+        stream_url: { type: string }
+
+    ModelTrainingRequest:
+      type: object
+      properties:
+        model_name: { type: string }
+        model_type: { type: string }
+        dataset_url: { type: string }
+
+    RAGQueryRequest:
+      type: object
+      properties:
+        query: { type: string }
+        context_window: { type: integer }

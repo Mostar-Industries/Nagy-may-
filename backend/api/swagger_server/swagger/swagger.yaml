@@ -1,0 +1,1603 @@
+openapi: 3.0.0
+info:
+  title: MNTRK API by MoStar Industries
+  description: |
+    This API provides robust tools for tracking Mastomys Natalensis populations, analyzing ecological trends, and supporting Lassa fever outbreak management. It is aligned with Nigeria CDC requirements and integrates with Supabase.
+  contact:
+    name: Mastomys Tracker Support Team
+    url: https://www.mo-overlord.tech/
+    email: support@mo-overlord.tech
+  version: 1.0.1
+servers:
+- url: https://virtserver.swaggerhub.com/marv-b24/MNTRK/1.0.1
+  description: SwaggerHub API Auto Mocking
+- url: https://app.swaggerhub.com/apis/mostarindustries/MoStar_AI/1.0.1.2
+  description: Production Server
+- url: https://staging.mo-overlord.tech/
+  description: Staging Server
+- url: http://192.168.0.105:1234
+  description: Local DeepSeek AI Server
+security:
+- OAuth2:
+  - read:userfiles
+  - data:read
+- deepseekAuth: []
+- GoogleVisionKey: []
+paths:
+  /api/habitats:
+    post:
+      summary: Analyze satellite or environmental data for Mastomys Natalensis habitats
+      operationId: analyze_habitats
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HabitatAnalysisRequest"
+        required: true
+      responses:
+        "200":
+          description: Habitat analysis successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HabitatAnalysisResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/detection-patterns:
+    post:
+      summary: Record detection patterns of Mastomys Natalensis
+      operationId: record_detection_patterns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectionPattern"
+        required: true
+      responses:
+        "200":
+          description: Detection recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionPatternResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/vision/analyze:
+    post:
+      summary: Analyze images for Mastomys Natalensis
+      operationId: analyze_vision
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VisionAnalyzeRequest"
+        required: true
+      responses:
+        "200":
+          description: Image analysis successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VisionAnalyzeResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/augmentation/remote-sensing:
+    post:
+      summary: Apply augmentation to remote sensing data
+      operationId: apply_augmentation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteSensingAugmentationRequest"
+        required: true
+      responses:
+        "200":
+          description: Augmentation applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteSensingAugmentationResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/data-transformation:
+    post:
+      summary: Transform and clean datasets
+      operationId: transform_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataTransformationRequest"
+        required: true
+      responses:
+        "200":
+          description: Data transformation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataTransformationResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/anomaly-detection:
+    post:
+      summary: Detect anomalies in data
+      operationId: detect_anomalies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnomalyDetectionRequest"
+        required: true
+      responses:
+        "200":
+          description: Anomalies detected successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnomalyDetectionResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/adaptive-learning:
+    post:
+      summary: Configure adaptive learning
+      operationId: configure_adaptive_learning
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdaptiveLearningRequest"
+        required: true
+      responses:
+        "200":
+          description: Adaptive learning configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdaptiveLearningResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/predict-movements:
+    get:
+      summary: Predict Mastomys movements
+      operationId: predict_movements
+      parameters:
+      - name: latitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+      - name: longitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+      - name: date
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date
+      responses:
+        "200":
+          description: Movements predicted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovementPredictionResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/vision/google-vision:
+    post:
+      summary: Integrate with Google Vision API
+      operationId: integrate_google_vision
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleVisionRequest"
+        required: true
+      responses:
+        "200":
+          description: Google Vision integration successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleVisionResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/modeling/predictive:
+    post:
+      summary: Execute predictive modeling
+      operationId: predictive_modeling
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictiveModelRequest"
+        required: true
+      responses:
+        "200":
+          description: Predictive modeling executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictiveModelResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/langchain/generate:
+    post:
+      summary: Generate AI insights using LangChain with DeepSeek-R1-Distill-Qwen-7B
+      operationId: generate_lang_chain_insights
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LangChainRequest"
+        required: true
+      responses:
+        "200":
+          description: Insights generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LangChainResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      security:
+      - deepseekAuth: []
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/supabase/query:
+    post:
+      summary: Query data from Supabase
+      operationId: query_supabase_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupabaseQueryRequest"
+        required: true
+      responses:
+        "200":
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupabaseQueryResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/postgres/query:
+    post:
+      summary: Query data from Postgres database
+      operationId: query_postgres_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostgresQueryRequest"
+        required: true
+      responses:
+        "200":
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostgresQueryResponse"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/spatial/clustering:
+    post:
+      summary: Analyze spatial clustering of detection patterns
+      operationId: analyze_spatial_clustering
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/spatial_clustering_body"
+        required: true
+      responses:
+        "200":
+          description: Clustering analysis completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterAnalysisResult"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/weather-climate:
+    get:
+      summary: Retrieve weather and climate data for habitat analysis
+      operationId: get_weather_climate_data
+      parameters:
+      - name: latitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+      - name: longitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: number
+      - name: timeframe
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - current
+          - 7_day_forecast
+          - historical_30_days
+          - seasonal_projection
+      responses:
+        "200":
+          description: Weather and climate data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WeatherClimateData"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/notifications/subscribe:
+    post:
+      summary: Subscribe to real-time notifications for detection events
+      operationId: subscribe_to_notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/notifications_subscribe_body"
+        required: true
+      responses:
+        "200":
+          description: Subscription successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationSubscription"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/temporal-analysis:
+    post:
+      summary: Analyze temporal patterns in detection data
+      operationId: analyze_temporal_patterns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/api_temporalanalysis_body"
+        required: true
+      responses:
+        "200":
+          description: Temporal analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/inline_response_200"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    HabitatAnalysisRequest:
+      type: object
+      properties:
+        satellite_data:
+          type: string
+          description: Base64 encoded satellite image
+        environmental_data:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_environmental_data"
+        geographic_coordinates:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_geographic_coordinates"
+        analysis_parameters:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_analysis_parameters"
+    HabitatAnalysisResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        location:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_geographic_coordinates"
+        suitability_score:
+          type: number
+        analysis_timestamp:
+          type: string
+          description: Precise timestamp when the analysis was performed
+          format: date-time
+        temporal_pattern:
+          $ref: "#/components/schemas/HabitatAnalysisResponse_temporal_pattern"
+        risk_factors:
+          type: array
+          items:
+            $ref: "#/components/schemas/HabitatAnalysisResponse_risk_factors"
+        future_projections:
+          type: array
+          items:
+            $ref: "#/components/schemas/HabitatAnalysisResponse_future_projections"
+      example:
+        future_projections:
+        - timeframe: 30_days
+          confidence_interval: 7.0614014
+          projected_population: 2
+        - timeframe: 30_days
+          confidence_interval: 7.0614014
+          projected_population: 2
+        suitability_score: 5.962133916683182
+        temporal_pattern:
+          historical_trend: increasing
+          frequency: daily
+        risk_factors:
+        - factor_type: climate
+          impact_score: 5.637377
+        - factor_type: climate
+          impact_score: 5.637377
+        location:
+          latitude: 6.027456183070403
+          longitude: 1.4658129805029452
+        id: 0
+        analysis_timestamp: 2000-01-23T04:56:07.000+00:00
+    DetectionPattern:
+      type: object
+      properties:
+        id:
+          type: integer
+        location:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_geographic_coordinates"
+        detection_timestamp:
+          type: string
+          description: Precise timestamp when the detection occurred
+          format: date-time
+        temporal_pattern:
+          $ref: "#/components/schemas/HabitatAnalysisResponse_temporal_pattern"
+        biometric_data:
+          $ref: "#/components/schemas/BiometricProfile"
+    DetectionPatternResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        location:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_geographic_coordinates"
+        detection_timestamp:
+          type: string
+          description: Precise timestamp when the detection occurred
+          format: date-time
+        biometric_data:
+          $ref: "#/components/schemas/BiometricProfile"
+        environmental_context:
+          $ref: "#/components/schemas/DetectionPatternResponse_environmental_context"
+      example:
+        detection_timestamp: 2000-01-23T04:56:07.000+00:00
+        environmental_context:
+          vegetation_density: 9.301444243932576
+          temperature: 2.3021358869347655
+          humidity: 7.061401241503109
+        biometric_data:
+          morphological_features:
+          - morphological_features
+          - morphological_features
+          size_metrics:
+            length_mm: 1.4658129805029452
+            weight_g: 5.962133916683182
+          behavioral_patterns:
+            activity_level: low
+            movement_pattern: linear
+            foraging_behavior: solo
+          genetic_markers:
+          - genetic_markers
+          - genetic_markers
+          genomic_predictive_score: 5.637376656633329
+          species_confidence: 6.0274563
+        location:
+          latitude: 6.027456183070403
+          longitude: 1.4658129805029452
+        id: 0
+    VisionAnalyzeRequest:
+      type: object
+      properties:
+        image:
+          type: string
+        confidence_threshold:
+          type: number
+    VisionAnalyzeResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        detections:
+          type: array
+          items:
+            $ref: "#/components/schemas/VisionAnalyzeResponse_detections"
+        extracted_features:
+          $ref: "#/components/schemas/VisionAnalyzeResponse_extracted_features"
+      example:
+        extracted_features:
+          ndvi_index: 6.027456183070403
+          water_body_ratio: 1.4658129805029452
+          land_classification:
+          - land_classification
+          - land_classification
+        status: status
+        detections:
+        - bounding_box: {}
+          confidence: 0.8008281904610115
+          classification: classification
+        - bounding_box: {}
+          confidence: 0.8008281904610115
+          classification: classification
+    RemoteSensingAugmentationRequest:
+      type: object
+      properties:
+        dataset_url:
+          type: string
+        augmentation_type:
+          type: string
+    RemoteSensingAugmentationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        results_url:
+          type: string
+      example:
+        results_url: results_url
+        message: message
+    DataTransformationRequest:
+      type: object
+      properties:
+        dataset_url:
+          type: string
+    DataTransformationResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      example:
+        message: message
+    AnomalyDetectionRequest:
+      type: object
+      properties:
+        input_file:
+          type: string
+        detection_method:
+          type: string
+    AnomalyDetectionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        anomaly_results_url:
+          type: string
+      example:
+        anomaly_results_url: anomaly_results_url
+        message: message
+    AdaptiveLearningRequest:
+      type: object
+      properties:
+        model_type:
+          type: string
+          enum:
+          - linear_regression
+          - random_forest
+          - lstm
+          - xgboost
+          - prophet
+          - autoencoder
+        training_parameters:
+          $ref: "#/components/schemas/AdaptiveLearningRequest_training_parameters"
+        feedback_loop_configuration:
+          $ref: "#/components/schemas/AdaptiveLearningRequest_feedback_loop_configuration"
+    AdaptiveLearningResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        model_id:
+          type: string
+          format: uuid
+        training_status:
+          type: string
+          enum:
+          - pending
+          - in_progress
+          - completed
+          - failed
+        performance_metrics:
+          $ref: "#/components/schemas/AdaptiveLearningResponse_performance_metrics"
+        feedback_loop_status:
+          $ref: "#/components/schemas/AdaptiveLearningResponse_feedback_loop_status"
+      example:
+        training_status: pending
+        performance_metrics:
+          f1_score: 5.962133916683182
+          precision: 6.027456183070403
+          recall: 1.4658129805029452
+          accuracy: 0.8008281904610115
+        model_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        message: message
+        feedback_loop_status:
+          last_retraining: 2000-01-23T04:56:07.000+00:00
+          is_active: true
+          performance_trend: improving
+    MovementPredictionResponse:
+      type: object
+      properties:
+        predictions:
+          type: array
+          items:
+            $ref: "#/components/schemas/MovementPredictionResponse_predictions"
+      example:
+        predictions:
+        - latitude: 0.8008281904610115
+          confidence: 1.4658129805029452
+          longitude: 6.027456183070403
+        - latitude: 0.8008281904610115
+          confidence: 1.4658129805029452
+          longitude: 6.027456183070403
+    GoogleVisionRequest:
+      type: object
+      properties:
+        image:
+          type: string
+          description: Base64-encoded image data
+        features:
+          type: array
+          description: "Google Vision features to analyze (e.g., LABEL_DETECTION)"
+          items:
+            type: string
+    GoogleVisionResponse:
+      type: object
+      properties:
+        labels:
+          type: array
+          description: Detected labels
+          items:
+            type: string
+        objects:
+          type: array
+          items:
+            $ref: "#/components/schemas/GoogleVisionResponse_objects"
+        text:
+          type: string
+          description: Detected text
+      example:
+        objects:
+        - bounding_box: {}
+          name: name
+        - bounding_box: {}
+          name: name
+        text: text
+        labels:
+        - labels
+        - labels
+    PredictiveModelRequest:
+      type: object
+      properties:
+        model_type:
+          type: string
+          description: The predictive model to use
+          enum:
+          - linear_regression
+          - random_forest
+          - lstm
+          - xgboost
+          - prophet
+          - autoencoder
+        input_features:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_environmental_data"
+        adaptive_context:
+          $ref: "#/components/schemas/PredictiveModelRequest_adaptive_context"
+        multi_source_features:
+          $ref: "#/components/schemas/PredictiveModelRequest_multi_source_features"
+        output_type:
+          type: string
+          description: Type of prediction output
+          enum:
+          - probability
+          - forecast
+    PredictiveModelResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        predictions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictiveModelResponse_predictions"
+        model_feedback:
+          $ref: "#/components/schemas/PredictiveModelResponse_model_feedback"
+      example:
+        predictions:
+        - confidence_explanation:
+            decision_context: decision_context
+            shap_scores:
+            - feature: feature
+              importance: 6.027456183070403
+            - feature: feature
+              importance: 6.027456183070403
+          suitability_score: 0.8008281904610115
+          forecast_data: {}
+          location:
+            latitude: 6.027456183070403
+            longitude: 1.4658129805029452
+        - confidence_explanation:
+            decision_context: decision_context
+            shap_scores:
+            - feature: feature
+              importance: 6.027456183070403
+            - feature: feature
+              importance: 6.027456183070403
+          suitability_score: 0.8008281904610115
+          forecast_data: {}
+          location:
+            latitude: 6.027456183070403
+            longitude: 1.4658129805029452
+        status: status
+        model_feedback:
+          retrain_triggered: true
+          feedback_window: feedback_window
+          misclassification_rate: 1.4658129805029452
+    LangChainRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+          description: Input prompt for LangChain with Deepseek
+        model:
+          type: string
+          description: "DeepSeek model identifier for local deployment of lmstudio-community/DeepSeek-R1-Distill-Qwen-7B-GGUF\
+            \ (4.68 GB, Q4_K_M quantization, qwen2 architecture)"
+          default: deepseek-r1-distill-qwen-7b
+          enum:
+          - deepseek-r1-distill-qwen-7b
+        temperature:
+          maximum: 1
+          minimum: 0
+          type: number
+          description: "Control randomness of outputs (0=deterministic, 1=creative)"
+          format: float
+          default: 0.7
+        options:
+          type: object
+          description: Additional options for generating insights
+    LangChainResponse:
+      type: object
+      properties:
+        generated_text:
+          type: string
+          description: Text generated by LangChain
+        metadata:
+          type: object
+          description: Metadata related to the generation process
+      example:
+        metadata: {}
+        generated_text: generated_text
+    SupabaseQueryRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: SQL query to execute on Supabase
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: Parameters for the SQL query
+    SupabaseQueryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: Query results
+          items:
+            type: object
+        metadata:
+          type: object
+          description: Query execution metadata
+      example:
+        metadata: {}
+        data:
+        - {}
+        - {}
+    PostgresQueryRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: SQL query to execute on Postgres
+        parameters:
+          type: object
+          additionalProperties:
+            type: string
+          description: Parameters for the SQL query
+    PostgresQueryResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          description: Query results from Postgres
+          items:
+            type: object
+        metadata:
+          type: object
+          description: Query execution metadata
+      example:
+        metadata: {}
+        data:
+        - {}
+        - {}
+    GeoCoordinate:
+      type: object
+      properties:
+        latitude:
+          type: number
+          description: Latitude coordinate
+          format: float
+        longitude:
+          type: number
+          description: Longitude coordinate
+          format: float
+      example:
+        latitude: 6.0274563
+        longitude: 1.4658129
+    BiometricProfile:
+      type: object
+      properties:
+        species_confidence:
+          type: number
+          description: Confidence that organism is Mastomys Natalensis (0-1)
+          format: float
+        morphological_features:
+          type: array
+          items:
+            type: string
+        size_metrics:
+          $ref: "#/components/schemas/BiometricProfile_size_metrics"
+        genetic_markers:
+          type: array
+          items:
+            type: string
+        genomic_predictive_score:
+          type: number
+          description: Predicted behavioral alignment from genetic markers (0-1)
+        behavioral_patterns:
+          $ref: "#/components/schemas/BiometricProfile_behavioral_patterns"
+      example:
+        morphological_features:
+        - morphological_features
+        - morphological_features
+        size_metrics:
+          length_mm: 1.4658129805029452
+          weight_g: 5.962133916683182
+        behavioral_patterns:
+          activity_level: low
+          movement_pattern: linear
+          foraging_behavior: solo
+        genetic_markers:
+        - genetic_markers
+        - genetic_markers
+        genomic_predictive_score: 5.637376656633329
+        species_confidence: 6.0274563
+    ClusterAnalysisResult:
+      type: object
+      properties:
+        clusters:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClusterAnalysisResult_clusters"
+      example:
+        clusters:
+        - cluster_id: 0
+          density: 2.3021358869347655
+          center:
+            latitude: 6.0274563
+            longitude: 1.4658129
+          risk_assessment:
+            population_growth_rate: 9.301444243932576
+            outbreak_probability: 7.0614014
+          radius: 5.962133916683182
+          member_count: 5
+        - cluster_id: 0
+          density: 2.3021358869347655
+          center:
+            latitude: 6.0274563
+            longitude: 1.4658129
+          risk_assessment:
+            population_growth_rate: 9.301444243932576
+            outbreak_probability: 7.0614014
+          radius: 5.962133916683182
+          member_count: 5
+    WeatherClimateData:
+      type: object
+      properties:
+        temperature_data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherClimateData_temperature_data"
+        precipitation_data:
+          type: array
+          items:
+            $ref: "#/components/schemas/WeatherClimateData_precipitation_data"
+        rainfall_anomaly:
+          type: number
+          description: Deviation from historical average
+        climate_trends:
+          $ref: "#/components/schemas/WeatherClimateData_climate_trends"
+      example:
+        rainfall_anomaly: 5.962133916683182
+        temperature_data:
+        - humidity_percent: 6.027456183070403
+          temperature_c: 0.8008281904610115
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        - humidity_percent: 6.027456183070403
+          temperature_c: 0.8008281904610115
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        precipitation_data:
+        - amount_mm: 1.4658129805029452
+          type: rain
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        - amount_mm: 1.4658129805029452
+          type: rain
+          timestamp: 2000-01-23T04:56:07.000+00:00
+        climate_trends:
+          seasonal_shift: earlier
+          temperature_trend: warming
+    NotificationSubscription:
+      type: object
+      properties:
+        subscription_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - active
+          - paused
+          - expired
+        created_at:
+          type: string
+          format: date-time
+        expiration_date:
+          type: string
+          format: date-time
+      example:
+        subscription_id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        created_at: 2000-01-23T04:56:07.000+00:00
+        expiration_date: 2000-01-23T04:56:07.000+00:00
+        status: active
+    spatial_clustering_body:
+      type: object
+      properties:
+        region_coordinates:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeoCoordinate"
+        timeframe:
+          type: string
+          format: date-range
+        clustering_algorithm:
+          type: string
+          enum:
+          - DBSCAN
+          - HDBSCAN
+          - K-means
+        min_points:
+          type: integer
+          description: Minimum points to form a cluster
+        epsilon:
+          type: number
+          description: Maximum distance between points in a cluster
+    apinotificationssubscribe_region:
+      type: object
+      properties:
+        center:
+          $ref: "#/components/schemas/GeoCoordinate"
+        radius_km:
+          type: number
+    apinotificationssubscribe_threshold_parameters:
+      type: object
+      properties:
+        population_density:
+          type: number
+        suitability_score:
+          type: number
+        movement_rate:
+          type: number
+    apinotificationssubscribe_smart_thresholds:
+      type: object
+      properties:
+        auto_calibrated:
+          type: boolean
+        recent_anomaly_window:
+          type: string
+          description: "Time window for dynamic threshold recalibration (e.g., \"\
+            7d\")"
+    notifications_subscribe_body:
+      type: object
+      properties:
+        notification_type:
+          type: string
+          enum:
+          - new_detection
+          - threshold_breach
+          - habitat_change
+          - outbreak_risk
+        region:
+          $ref: "#/components/schemas/apinotificationssubscribe_region"
+        threshold_parameters:
+          $ref: "#/components/schemas/apinotificationssubscribe_threshold_parameters"
+        smart_thresholds:
+          $ref: "#/components/schemas/apinotificationssubscribe_smart_thresholds"
+        delivery_channel:
+          type: string
+          enum:
+          - webhook
+          - email
+          - sms
+          - push_notification
+        delivery_target:
+          type: string
+        expiration_days:
+          type: integer
+          description: Number of days until subscription expires
+    api_temporalanalysis_body:
+      type: object
+      properties:
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        region_coordinates:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeoCoordinate"
+        temporal_resolution:
+          type: string
+          enum:
+          - hourly
+          - daily
+          - weekly
+          - monthly
+        analysis_type:
+          type: string
+          enum:
+          - trend
+          - seasonality
+          - anomaly
+          - forecast
+    inline_response_200:
+      type: object
+      properties:
+        analysis_id:
+          type: string
+        analysis_type:
+          type: string
+        trends:
+          type: array
+          items:
+            type: object
+        seasonality:
+          type: object
+        anomalies:
+          type: array
+          items:
+            type: object
+        forecasts:
+          type: array
+          items:
+            type: object
+      example:
+        analysis_type: analysis_type
+        seasonality: {}
+        anomalies:
+        - {}
+        - {}
+        analysis_id: analysis_id
+        trends:
+        - {}
+        - {}
+        forecasts:
+        - {}
+        - {}
+    HabitatAnalysisRequest_environmental_data:
+      type: object
+      properties:
+        temperature:
+          type: number
+        rainfall:
+          type: number
+        vegetation_index:
+          type: number
+    HabitatAnalysisRequest_geographic_coordinates:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+      example:
+        latitude: 6.027456183070403
+        longitude: 1.4658129805029452
+    HabitatAnalysisRequest_analysis_parameters:
+      type: object
+      properties:
+        vegetation_threshold:
+          type: number
+    HabitatAnalysisResponse_temporal_pattern:
+      type: object
+      properties:
+        frequency:
+          type: string
+          enum:
+          - daily
+          - weekly
+          - monthly
+        historical_trend:
+          type: string
+          enum:
+          - increasing
+          - stable
+          - decreasing
+      example:
+        historical_trend: increasing
+        frequency: daily
+    HabitatAnalysisResponse_risk_factors:
+      type: object
+      properties:
+        factor_type:
+          type: string
+          enum:
+          - climate
+          - human_activity
+          - predator_presence
+        impact_score:
+          type: number
+          description: Impact on habitat suitability (0-100)
+          format: float
+      example:
+        factor_type: climate
+        impact_score: 5.637377
+    HabitatAnalysisResponse_future_projections:
+      type: object
+      properties:
+        timeframe:
+          type: string
+          enum:
+          - 30_days
+          - 90_days
+          - 1_year
+        projected_population:
+          type: integer
+        confidence_interval:
+          type: number
+          format: float
+      example:
+        timeframe: 30_days
+        confidence_interval: 7.0614014
+        projected_population: 2
+    DetectionPatternResponse_environmental_context:
+      type: object
+      properties:
+        temperature:
+          type: number
+        humidity:
+          type: number
+        vegetation_density:
+          type: number
+      example:
+        vegetation_density: 9.301444243932576
+        temperature: 2.3021358869347655
+        humidity: 7.061401241503109
+    VisionAnalyzeResponse_detections:
+      type: object
+      properties:
+        bounding_box:
+          type: object
+        confidence:
+          type: number
+        classification:
+          type: string
+      example:
+        bounding_box: {}
+        confidence: 0.8008281904610115
+        classification: classification
+    VisionAnalyzeResponse_extracted_features:
+      type: object
+      properties:
+        ndvi_index:
+          type: number
+        water_body_ratio:
+          type: number
+        land_classification:
+          type: array
+          items:
+            type: string
+      example:
+        ndvi_index: 6.027456183070403
+        water_body_ratio: 1.4658129805029452
+        land_classification:
+        - land_classification
+        - land_classification
+    AdaptiveLearningRequest_training_parameters:
+      type: object
+      properties:
+        learning_rate:
+          type: number
+        epochs:
+          type: integer
+        batch_size:
+          type: integer
+        validation_split:
+          type: number
+    AdaptiveLearningRequest_feedback_loop_configuration:
+      type: object
+      properties:
+        enable_auto_retraining:
+          type: boolean
+        performance_threshold:
+          type: number
+          description: Threshold below which model retraining is triggered
+        feedback_collection_period:
+          type: string
+          description: Time period for collecting performance metrics
+    AdaptiveLearningResponse_performance_metrics:
+      type: object
+      properties:
+        accuracy:
+          type: number
+        precision:
+          type: number
+        recall:
+          type: number
+        f1_score:
+          type: number
+      example:
+        f1_score: 5.962133916683182
+        precision: 6.027456183070403
+        recall: 1.4658129805029452
+        accuracy: 0.8008281904610115
+    AdaptiveLearningResponse_feedback_loop_status:
+      type: object
+      properties:
+        is_active:
+          type: boolean
+        last_retraining:
+          type: string
+          format: date-time
+        performance_trend:
+          type: string
+          enum:
+          - improving
+          - stable
+          - declining
+      example:
+        last_retraining: 2000-01-23T04:56:07.000+00:00
+        is_active: true
+        performance_trend: improving
+    MovementPredictionResponse_predictions:
+      type: object
+      properties:
+        latitude:
+          type: number
+        longitude:
+          type: number
+        confidence:
+          type: number
+      example:
+        latitude: 0.8008281904610115
+        confidence: 1.4658129805029452
+        longitude: 6.027456183070403
+    GoogleVisionResponse_objects:
+      type: object
+      properties:
+        name:
+          type: string
+        bounding_box:
+          type: object
+      example:
+        bounding_box: {}
+        name: name
+    PredictiveModelRequest_adaptive_context:
+      type: object
+      properties:
+        region_bias_profile:
+          type: string
+          description: "Learned bias profiles for regions (e.g., rainfall + altitude\
+            \ patterns)"
+        seasonality_override:
+          type: boolean
+          description: "If true, reweights seasonal baselines using real-time anomalies"
+        trend_tuning_factor:
+          type: number
+          description: Adjusts the learning rate in response to observed trends
+    PredictiveModelRequest_multi_source_features:
+      type: object
+      properties:
+        sentinel_ndvi_7d_avg:
+          type: number
+        rainfall_sensor_last_3d:
+          type: number
+        known_outbreak_density:
+          type: number
+    PredictiveModelResponse_confidence_explanation_shap_scores:
+      type: object
+      properties:
+        feature:
+          type: string
+        importance:
+          type: number
+      example:
+        feature: feature
+        importance: 6.027456183070403
+    PredictiveModelResponse_confidence_explanation:
+      type: object
+      properties:
+        shap_scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/PredictiveModelResponse_confidence_explanation_shap_scores"
+        decision_context:
+          type: string
+          description: "Plaintext summary (e.g., \"high vegetation & moderate rainfall\
+            \ drove high suitability\")"
+      example:
+        decision_context: decision_context
+        shap_scores:
+        - feature: feature
+          importance: 6.027456183070403
+        - feature: feature
+          importance: 6.027456183070403
+    PredictiveModelResponse_predictions:
+      type: object
+      properties:
+        location:
+          $ref: "#/components/schemas/HabitatAnalysisRequest_geographic_coordinates"
+        suitability_score:
+          type: number
+        forecast_data:
+          type: object
+        confidence_explanation:
+          $ref: "#/components/schemas/PredictiveModelResponse_confidence_explanation"
+      example:
+        confidence_explanation:
+          decision_context: decision_context
+          shap_scores:
+          - feature: feature
+            importance: 6.027456183070403
+          - feature: feature
+            importance: 6.027456183070403
+        suitability_score: 0.8008281904610115
+        forecast_data: {}
+        location:
+          latitude: 6.027456183070403
+          longitude: 1.4658129805029452
+    PredictiveModelResponse_model_feedback:
+      type: object
+      properties:
+        misclassification_rate:
+          type: number
+        retrain_triggered:
+          type: boolean
+        feedback_window:
+          type: string
+      example:
+        retrain_triggered: true
+        feedback_window: feedback_window
+        misclassification_rate: 1.4658129805029452
+    BiometricProfile_size_metrics:
+      type: object
+      properties:
+        length_mm:
+          type: number
+        weight_g:
+          type: number
+          description: Estimated weight in grams
+      example:
+        length_mm: 1.4658129805029452
+        weight_g: 5.962133916683182
+    BiometricProfile_behavioral_patterns:
+      type: object
+      properties:
+        activity_level:
+          type: string
+          enum:
+          - low
+          - medium
+          - high
+        movement_pattern:
+          type: string
+          enum:
+          - linear
+          - erratic
+          - circular
+        foraging_behavior:
+          type: string
+          enum:
+          - solo
+          - group
+          - opportunistic
+      example:
+        activity_level: low
+        movement_pattern: linear
+        foraging_behavior: solo
+    ClusterAnalysisResult_risk_assessment:
+      type: object
+      properties:
+        outbreak_probability:
+          type: number
+          description: Probability of disease outbreak (0-1)
+          format: float
+        population_growth_rate:
+          type: number
+          description: Estimated weekly growth rate
+      example:
+        population_growth_rate: 9.301444243932576
+        outbreak_probability: 7.0614014
+    ClusterAnalysisResult_clusters:
+      type: object
+      properties:
+        cluster_id:
+          type: integer
+        center:
+          $ref: "#/components/schemas/GeoCoordinate"
+        radius:
+          type: number
+        member_count:
+          type: integer
+        density:
+          type: number
+        risk_assessment:
+          $ref: "#/components/schemas/ClusterAnalysisResult_risk_assessment"
+      example:
+        cluster_id: 0
+        density: 2.3021358869347655
+        center:
+          latitude: 6.0274563
+          longitude: 1.4658129
+        risk_assessment:
+          population_growth_rate: 9.301444243932576
+          outbreak_probability: 7.0614014
+        radius: 5.962133916683182
+        member_count: 5
+    WeatherClimateData_temperature_data:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        temperature_c:
+          type: number
+        humidity_percent:
+          type: number
+      example:
+        humidity_percent: 6.027456183070403
+        temperature_c: 0.8008281904610115
+        timestamp: 2000-01-23T04:56:07.000+00:00
+    WeatherClimateData_precipitation_data:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        amount_mm:
+          type: number
+        type:
+          type: string
+          enum:
+          - rain
+          - snow
+          - hail
+          - mixed
+      example:
+        amount_mm: 1.4658129805029452
+        type: rain
+        timestamp: 2000-01-23T04:56:07.000+00:00
+    WeatherClimateData_climate_trends:
+      type: object
+      properties:
+        seasonal_shift:
+          type: string
+          enum:
+          - earlier
+          - normal
+          - later
+        temperature_trend:
+          type: string
+          enum:
+          - warming
+          - stable
+          - cooling
+      example:
+        seasonal_shift: earlier
+        temperature_trend: warming
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/2e270476-4cbe-4c7f-b99a-8710d225bcc6/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/2e270476-4cbe-4c7f-b99a-8710d225bcc6/oauth2/v2.0/token
+          scopes:
+            read:userfiles: Grants read access to user files
+            write:userfiles: Grants write access to user files
+            data:read: Grants read access to all data
+            data:write: Grants write access to all data
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_OAuth2
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_OAuth2
+    deepseekAuth:
+      type: apiKey
+      description: |
+        DeepSeek API authentication for local deployment. Use `Authorization: sk-xxxx` in the header.
+      name: Authorization
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_deepseekAuth
+    GoogleVisionKey:
+      type: apiKey
+      description: |
+        Google Vision API authentication using `X-Api-Key` header.
+      name: X-Api-Key
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_GoogleVisionKey
