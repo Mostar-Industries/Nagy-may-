@@ -21,6 +21,12 @@ def agent_telemetry():
     result, status_code = IngestionService.store_detection(data)
     return jsonify(result), status_code
 
+# Backwards compatibility for older clients expecting /track
+@agents_bp.route('/track', methods=['POST'])
+def agent_track():
+    """Store a tracking event from an agent."""
+    return agent_telemetry()
+
 @agents_bp.route('/status', methods=['GET'])
 # @jwt_required() # If only authenticated users can see agent statuses
 def get_agent_statuses():
