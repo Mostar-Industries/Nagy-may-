@@ -1,3 +1,5 @@
-# This file makes the 'app' directory a Python package.
-# You can also put app factory logic here if not in main.py,
-# but your main.py already has create_app().
+"""Application package for the Flask backend."""
+
+from .main import create_app
+
+__all__ = ["create_app"]

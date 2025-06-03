@@ -154,7 +154,7 @@ def query_habitat_analyses_by_region(latitude: float, longitude: float, radius_k
         
         docs = db.collection('habitat_analyses')\
                 .where('latitude', '>=', latitude - lat_delta)\
-                .where('latitude', '&lt;=', latitude + lat_delta)\
+                .where('latitude', '<=', latitude + lat_delta)\
                 .order_by('analysis_timestamp', direction=firestore.Query.DESCENDING)\
                 .limit(limit)\
                 .stream()
@@ -164,7 +164,7 @@ def query_habitat_analyses_by_region(latitude: float, longitude: float, radius_k
             data = doc.to_dict()
             data['id'] = doc.id
             # Additional longitude filtering
-            if abs(data.get('longitude', 0) - longitude) &lt;= lon_delta:
+            if abs(data.get('longitude', 0) - longitude) <= lon_delta:
                 results.append(data)
         
         return results
