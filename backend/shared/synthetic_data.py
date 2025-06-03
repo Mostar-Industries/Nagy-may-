@@ -53,9 +53,9 @@ async def generate_synthetic_training_data(count: int = 1000) -> List[Dict]:
                 random.uniform(-0.2, 0.2)
             )
             
-            if risk_score &lt; 0.3:
+            if risk_score < 0.3:
                 risk_level = 'low'
-            elif risk_score &lt; 0.7:
+            elif risk_score < 0.7:
                 risk_level = 'medium'
             else:
                 risk_level = 'high'
@@ -161,10 +161,10 @@ async def validate_synthetic_data(synthetic_data: List[Dict]) -> Dict:
             lon = record.get('longitude', 0)
             temp = record.get('temperature', 0)
             
-            if -90 &lt;= lat &lt;= 90 and -180 &lt;= lon &lt;= 180:
+            if -90 <= lat <= 90 and -180 <= lon <= 180:
                 valid_coordinates += 1
-            
-            if 10 &lt;= temp &lt;= 50:  # Reasonable temperature range
+
+            if 10 <= temp <= 50:  # Reasonable temperature range
                 valid_temperatures += 1
         
         coordinate_validity = valid_coordinates / total_records

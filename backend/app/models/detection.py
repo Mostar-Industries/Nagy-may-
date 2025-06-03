@@ -1,4 +1,4 @@
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
 from sqlalchemy.sql import func
 from ..extensions import db
 
@@ -10,8 +10,8 @@ class Detection(db.Model):
     longitude = db.Column(db.Numeric(10, 6), nullable=False)
     detection_count = db.Column(db.Integer, default=1)
     detection_timestamp = db.Column(db.DateTime(timezone=True), nullable=False)
-    environmental_context = db.Column(JSONB)
-    risk_assessment = db.Column(JSONB)
+    environmental_context = db.Column(JSON)
+    risk_assessment = db.Column(JSON)
     source = db.Column(db.Text)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
