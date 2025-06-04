@@ -36,16 +36,16 @@ Continue building your app on:
 The Flask backend lives in the `backend/` folder. You can start it using the built
 in development server:
 
-```bash
+\`\`\`bash
 python -m app
-```
+\`\`\`
 
 For production style execution use the provided start script which launches
 Gunicorn:
 
-```bash
+\`\`\`bash
 ./backend/start.sh
-```
+\`\`\`
 
 ### Required environment variables
 
@@ -63,14 +63,14 @@ The backend expects several environment variables to be configured:
 The Next.js frontend is located at the repository root. Launch it in development
 mode with:
 
-```bash
+\`\`\`bash
 pnpm dev
-```
+\`\`\`
 
 ### Tests
 
 Unit tests for the backend reside in `backend/tests`. Run them with:
 
-```bash
+\`\`\`bash
 pytest backend/tests
-```
+\`\`\`
