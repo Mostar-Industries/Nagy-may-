@@ -28,3 +28,49 @@ Continue building your app on:
 2. Deploy your chats from the v0 interface
 3. Changes are automatically pushed to this repository
 4. Vercel deploys the latest version from this repository
+
+## Running the project locally
+
+### Backend
+
+The Flask backend lives in the `backend/` folder. You can start it using the built
+in development server:
+
+```bash
+python -m app
+```
+
+For production style execution use the provided start script which launches
+Gunicorn:
+
+```bash
+./backend/start.sh
+```
+
+### Required environment variables
+
+The backend expects several environment variables to be configured:
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | Connection string for the Postgres database used by SQLAlchemy. |
+| `FIREBASE_CREDENTIALS` | Path or JSON credentials for Firebase Admin SDK. |
+| `JWT_SECRET_KEY` | Secret used to sign JWT tokens. |
+| `DEEPSEEK_API_KEY` | API key for the DeepSeek integration. |
+
+### Frontend
+
+The Next.js frontend is located at the repository root. Launch it in development
+mode with:
+
+```bash
+pnpm dev
+```
+
+### Tests
+
+Unit tests for the backend reside in `backend/tests`. Run them with:
+
+```bash
+pytest backend/tests
+```
