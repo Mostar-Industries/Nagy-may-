@@ -105,7 +105,7 @@ class SymbolicReasoningEngine(KnowledgeEngine):
     @Rule(BiosurveillanceFacts(vegetation_index=MATCH.veg, temperature=MATCH.temp))
     def optimal_habitat_conditions(self, veg, temp):
         """Rule: Optimal habitat conditions increase risk."""
-        if 0.4 <= veg <= 0.8 and 20 <= temp <= 35:
+        if 0.4 &lt;= veg &lt;= 0.8 and 20 &lt;= temp &lt;= 35:
             self.declare(BiosurveillanceFacts(
                 habitat_suitability="optimal",
                 reason="optimal_habitat_conditions"

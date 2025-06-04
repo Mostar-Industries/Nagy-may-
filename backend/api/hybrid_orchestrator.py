@@ -227,7 +227,7 @@ class HybridMLOrchestrator:
         
         # Create risk indicators
         df['high_detection_flag'] = (df['detection_count'] > df['detection_count'].quantile(0.75)).astype(int)
-        df['optimal_temp_flag'] = ((df['temperature'] >= 20) & (df['temperature'] <= 30)).astype(int)
+        df['optimal_temp_flag'] = ((df['temperature'] >= 20) & (df['temperature'] &lt;= 30)).astype(int)
         
         # Spatial features
         df['lat_abs'] = abs(df['latitude'])

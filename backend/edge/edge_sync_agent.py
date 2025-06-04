@@ -171,7 +171,7 @@ class EdgeSyncAgent:
         lat = record.get('latitude', 0)
         lon = record.get('longitude', 0)
         
-        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+        if not (-90 &lt;= lat &lt;= 90 and -180 &lt;= lon &lt;= 180):
             return False
         
         return True
@@ -184,9 +184,9 @@ class EdgeSyncAgent:
         lat = record.get('latitude', 0)
         lon = record.get('longitude', 0)
         
-        if 8 <= lat <= 12 and -13 <= lon <= -10:
+        if 8 &lt;= lat &lt;= 12 and -13 &lt;= lon &lt;= -10:
             enriched['region'] = 'sierra_leone'
-        elif 6 <= lat <= 10 and -12 <= lon <= -8:
+        elif 6 &lt;= lat &lt;= 10 and -12 &lt;= lon &lt;= -8:
             enriched['region'] = 'guinea'
         else:
             enriched['region'] = 'west_africa'
