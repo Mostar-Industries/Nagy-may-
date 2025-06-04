@@ -7,8 +7,6 @@ import {
   Color,
   PointGraphics,
   LabelGraphics,
-  createWorldTerrainAsync,
-  IonImageryProvider,
   SceneMode, // Import SceneMode
   WebMercatorProjection, // Import WebMercatorProjection
 } from "cesium"
@@ -49,12 +47,15 @@ export default function MapPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log("useEffect triggered, window:", typeof window)
     if (typeof window === "undefined") return
 
     if (viewerRef.current && !cesiumViewer) {
+      console.log("Starting Cesium initialization...")
       setError(null)
 
       const cesiumToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN
+      console.log("Cesium token available:", !!cesiumToken)
       if (!cesiumToken) {
         const tokenError = "Cesium Ion token is not defined. Please set NEXT_PUBLIC_CESIUM_ION_TOKEN."
         console.error(tokenError)
@@ -65,30 +66,32 @@ export default function MapPage() {
 
       const initialize = async () => {
         try {
-          // Terrain is less visually impactful in 2D but can still affect imagery loading if no other base layer is set.
-          // It's fine to keep it, or you can remove it for a purely 2D setup.
-          const worldTerrain = await createWorldTerrainAsync()
-
+          console.log("Creating Cesium viewer...")
+          // Remove terrain provider temporarily to simplify initialization
           const viewerInstance = new Viewer(viewerRef.current!, {
-            terrainProvider: worldTerrain, // Can be kept or set to undefined for 2D
-            sceneMode: SceneMode.SCENE2D, // Set to 2D mode
-            mapProjection: new WebMercatorProjection(), // Use Web Mercator projection
+            // terrainProvider: worldTerrain, // Comment this out temporarily
+            sceneMode: SceneMode.SCENE2D,
+            mapProjection: new WebMercatorProjection(),
             animation: true,
             timeline: true,
             fullscreenButton: true,
-            shouldAnimate: true, // Still useful for smooth zooming/panning
+            shouldAnimate: true,
             baseLayerPicker: false,
             infoBox: true,
           })
 
-          try {
-            const imageryLayer = viewerInstance.imageryLayers.addImageryProvider(
-              await IonImageryProvider.fromAssetId(3954), // Sentinel-2 imagery
-            )
-          } catch (imageryError) {
-            console.error("Error adding Sentinel-2 imagery layer:", imageryError)
-          }
+          console.log("Cesium viewer created successfully")
 
+          // Comment out the imagery layer temporarily
+          // try {
+          //   const imageryLayer = viewerInstance.imageryLayers.addImageryProvider(
+          //     await IonImageryProvider.fromAssetId(3954), // Sentinel-2 imagery
+          //   )
+          // } catch (imageryError) {
+          //   console.error("Error adding Sentinel-2 imagery layer:", imageryError)
+          // }
+
+          console.log("Adding detection points...")
           hardcodedDetections.forEach((detection) => {
             viewerInstance.entities.add({
               id: detection.id,
@@ -111,17 +114,18 @@ export default function MapPage() {
                 pixelOffset: new Cesium.Cartesian2(0, -15),
               }),
               description: `
-                <div style="font-family: sans-serif; color: #333; padding: 10px;">
-                  <h3 style="margin-bottom: 5px; color: #007bff;">${detection.name}</h3>
-                  <p><strong>ID:</strong> ${detection.id}</p>
-                  <p><strong>Coordinates:</strong> (${detection.latitude.toFixed(4)}, ${detection.longitude.toFixed(4)})</p>
-                  <p><strong>Altitude:</strong> ${detection.altitude}m</p>
-                  <p><strong>Notes:</strong> ${detection.description || "N/A"}</p>
-                </div>
-              `,
+              <div style="font-family: sans-serif; color: #333; padding: 10px;">
+                <h3 style="margin-bottom: 5px; color: #007bff;">${detection.name}</h3>
+                <p><strong>ID:</strong> ${detection.id}</p>
+                <p><strong>Coordinates:</strong> (${detection.latitude.toFixed(4)}, ${detection.longitude.toFixed(4)})</p>
+                <p><strong>Altitude:</strong> ${detection.altitude}m</p>
+                <p><strong>Notes:</strong> ${detection.description || "N/A"}</p>
+              </div>
+            `,
             })
           })
 
+          console.log("Flying to entities...")
           if (viewerInstance.entities.values.length > 0) {
             viewerInstance
               .flyTo(viewerInstance.entities, {
@@ -130,16 +134,16 @@ export default function MapPage() {
               .catch(console.error)
           } else {
             viewerInstance.camera.flyTo({
-              destination: Cartesian3.fromDegrees(36.8219, -1.2921, 1500000), // Zoom out a bit more for 2D view
+              destination: Cartesian3.fromDegrees(36.8219, -1.2921, 1500000),
               orientation: {
-                // Orientation is less relevant in 2D, but can set initial heading
                 heading: Cesium.Math.toRadians(0.0),
-                pitch: Cesium.Math.toRadians(0.0), // Pitch is effectively 0 in 2D
+                pitch: Cesium.Math.toRadians(0.0),
                 roll: Cesium.Math.toRadians(0.0),
               },
             })
           }
 
+          console.log("Setting cesium viewer state...")
           setCesiumViewer(viewerInstance)
         } catch (initError) {
           console.error("Error initializing Cesium Viewer:", initError)
@@ -200,6 +204,23 @@ export default function MapPage() {
 
   return (
     <main style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden" }}>
+      {!cesiumViewer && !error && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "white",
+            backgroundColor: "rgba(0,0,0,0.7)",
+            padding: "20px",
+            borderRadius: "5px",
+            zIndex: 1000,
+          }}
+        >
+          Loading Cesium Map...
+        </div>
+      )}
       <div ref={viewerRef} style={{ width: "100%", height: "100%" }} />
     </main>
   )
