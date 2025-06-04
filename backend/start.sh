@@ -5,4 +5,4 @@
 # flask db upgrade
 
 echo "Starting Gunicorn..."
-gunicorn app.main:application --bind 0.0.0.0:$PORT --timeout 120 -w 4
+gunicorn backend.app.main:application --bind 0.0.0.0:$PORT --timeout 120 -w 4
