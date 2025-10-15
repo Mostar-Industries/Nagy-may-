@@ -1,1 +1,0 @@
-web: gunicorn app.main:application --timeout 120 -w 4
