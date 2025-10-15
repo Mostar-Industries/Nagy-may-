@@ -2,15 +2,12 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-// Removed ThemeProvider for a cleaner map-focused layout.
-// If you need themes on other pages, you might consider a more complex layout structure
-// or apply ThemeProvider conditionally.
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Mastomys Natalensis Real-Time Tracker",
-  description: "Cesium Globe for Mastomys Natalensis Tracking",
+  title: "Mastomys Tracker - Rodent Detection & Monitoring",
+  description: "Real-time tracking and monitoring of Mastomys natalensis populations for Lassa fever surveillance",
     generator: 'v0.app'
 }
 
@@ -20,12 +17,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      {/* 
-        Removed inter.className from body to prevent potential style conflicts 
-        with a full-screen map. If you need the font, ensure its styles
-        don't interfere with Cesium's container.
-      */}
+    <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css"
+        />
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   )
