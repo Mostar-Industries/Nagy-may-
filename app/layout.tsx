@@ -1,9 +1,13 @@
+import "server-only"
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { validateEnvironment } from "@/lib/env-validation"
 
 const inter = Inter({ subsets: ["latin"] })
+
+validateEnvironment()
 
 export const metadata: Metadata = {
   title: "Mastomys Tracker - Rodent Detection & Monitoring",
