@@ -227,7 +227,7 @@ export default function MonitoringPage() {
             </div>
             <div className="mt-4 md:mt-0 flex space-x-3">
               <div className="relative">
-                <select className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <select aria-label="Select country" className="appearance-none bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                   <option>Nigeria</option>
                   <option>Ghana</option>
                   <option>Benin</option>
