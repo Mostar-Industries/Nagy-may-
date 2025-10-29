@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import Script from "next/script"
+import Link from "next/link"
 
 // Hardcoded detection points
 const hardcodedDetections = [
@@ -74,11 +75,14 @@ export default function MapPage() {
     try {
       const Cesium = window.Cesium
 
-      const cesiumToken = process.env.NEXT_PUBLIC_CESIUM_ION_TOKEN
-      if (!cesiumToken) {
-        throw new Error("Cesium Ion token is not defined. Please set NEXT_PUBLIC_CESIUM_ION_TOKEN.")
+      // Fetch token from API route
+      const tokenResponse = await fetch("/api/cesium-token")
+      if (!tokenResponse.ok) {
+        throw new Error("Failed to fetch Cesium token")
       }
-      Cesium.Ion.defaultAccessToken = cesiumToken
+      const { token } = await tokenResponse.json()
+
+      Cesium.Ion.defaultAccessToken = token
 
       // Create terrain provider first
       const terrainProvider = await Cesium.createWorldTerrainAsync()
@@ -315,6 +319,40 @@ export default function MapPage() {
             <span style={{ fontSize: "12px" }}>Suspected Detection</span>
           </div>
         </div>
+
+        <Link
+          href="/monitoring"
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            color: "white",
+            padding: "12px 16px",
+            borderRadius: "8px",
+            zIndex: 1000,
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            fontSize: "14px",
+            fontWeight: "500",
+            border: "1px solid rgba(255,255,255,0.2)",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.95)"
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)"
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "rgba(0,0,0,0.8)"
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"
+          }}
+        >
+          <span>📊</span>
+          <span>Monitoring</span>
+        </Link>
 
         <div ref={viewerRef} style={{ width: "100%", height: "100%" }} />
       </main>
