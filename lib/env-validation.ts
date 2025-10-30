@@ -1,14 +1,14 @@
 import "server-only"
 
-const requiredServerEnvVars = ["DATABASE_URL", "POSTGRES_URL", "CESIUM_ION_TOKEN"]
+const requiredServerEnvVars = ["DATABASE_URL", "POSTGRES_URL", "NEXT_PUBLIC_CESIUM_ION_TOKEN"]
 
 const optionalServerEnvVars = [
   "FLIGHTAWARE_API_KEY",
-  "SORMAS_API_KEY",
-  "WHO_AFRO_API_KEY",
-  "CDC_API_KEY",
-  "NPHCDA_API_KEY",
-  "OPENWEATHER_API_KEY",
+  "NCDC_SORMAS_API_URL",
+  "WHO_AFRO_DATA_URL",
+  "CDC_DATA_URL",
+  "NPHCDA_DATA_URL",
+  "NEXT_PUBLIC_OPENWEATHER_API_KEY",
 ]
 
 // These should only be used if explicitly needed and should be accessed through server-side routes
