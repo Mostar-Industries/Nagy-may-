@@ -1,0 +1,592 @@
+openapi: 3.1.0
+info:
+  title: MNTRK by MoStar Industries AI Agent API
+  description: |
+    This API provides robust and accurate tools for tracking Mastomys Natalensis populations, analyzing ecological trends, and supporting Lassa fever outbreak management in Nigeria. Designed with a focus on real-time data, environmental analysis, and outbreak hotspots. This is the API for the AI agent, providing direct interaction with the AI system.
+  contact:
+    name: Mastomys Tracker Support Team
+    url: https://www.mo-overlord.tech/
+    email: akanimo@57vflx.onmicrosoft.com
+  version: 1.4.0
+servers:
+- url: https://www.mo-overlord.tech/
+  description: Primary Production Server (Nigeria-focused)
+paths:
+  /ai/habitats:
+    post:
+      summary: Analyze satellite and environmental data to identify potential habitats.
+      description: |
+        This endpoint analyzes satellite imagery and environmental data to determine
+        habitat suitability for Mastomys Natalensis. It generates suitability scores
+        and identifies key ecological risk factors in the specified region.
+      operationId: ai_habitats_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HabitatAnalysisRequest'
+        required: true
+      responses:
+        "200":
+          description: Habitat analysis completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitatPrediction'
+        "400":
+          description: Invalid input or missing parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/detections:
+    post:
+      summary: Record detected patterns of Mastomys Natalensis populations.
+      description: |
+        This endpoint processes uploaded images to detect Mastomys Natalensis populations.
+        It identifies bounding boxes, confidence scores, and other detection metrics.
+      operationId: ai_detections_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetectionPattern'
+        required: true
+      responses:
+        "200":
+          description: Detection analysis completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetectionPatternResponse'
+        "400":
+          description: Invalid input or missing fields.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/video/stream-analyze:
+    post:
+      summary: Analyze live video streams for Mastomys detection.
+      description: |
+        This endpoint processes live video streams from sources like drones or stationary cameras. It detects Mastomys populations and generates an annotated video with detection summaries.
+      operationId: ai_video_stream_analyze_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoStreamRequest'
+        required: true
+      responses:
+        "200":
+          description: Video stream processed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoStreamResponse'
+        "400":
+          description: Invalid stream input or parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/modeling:
+    post:
+      summary: Train and evaluate predictive models for ecological analysis.
+      description: |
+        This endpoint trains and evaluates predictive models using uploaded datasets for Mastomys Natalensis habitat and population analysis. It supports various model types like LSTM, XGBoost, and Random Forest.
+      operationId: ai_modeling_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelTrainingRequest'
+        required: true
+      responses:
+        "200":
+          description: Model training completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelTrainingResponse'
+        "400":
+          description: Invalid training parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/rag-query:
+    post:
+      summary: Perform Retrieval-Augmented Generation (RAG) queries.
+      description: |
+        This endpoint answers user queries by retrieving relevant information using Retrieval-Augmented Generation (RAG). It combines retrieval capabilities with AI to deliver precise and explainable responses.
+      operationId: ai_rag_query_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RAGQueryRequest'
+        required: true
+      responses:
+        "200":
+          description: RAG query executed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RAGQueryResponse'
+        "400":
+          description: Invalid query parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /data-management/open:
+    post:
+      summary: Open and load datasets for analysis.
+      description: |
+        This endpoint allows loading datasets stored externally or on Supabase for further analysis or preprocessing. It supports formats like CSV, GeoJSON, and JSON.
+      operationId: data_management_open_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataManagementOpenRequest'
+        required: true
+      responses:
+        "200":
+          description: Dataset opened successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataManagementOpenResponse'
+        "400":
+          description: Invalid dataset URL or format.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /data-management/transform:
+    post:
+      summary: Transform datasets for compatibility and analysis.
+      description: |
+        This endpoint applies transformations like normalization, scaling, or encoding to prepare datasets for analysis or machine learning purposes.
+      operationId: data_management_transform_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataManagementTransformRequest'
+        required: true
+      responses:
+        "200":
+          description: Dataset transformed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataManagementTransformResponse'
+        "400":
+          description: Invalid transformation parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/forecast/risk-analysis:
+    post:
+      summary: Predict outbreak risk for specific regions.
+      description: |
+        This endpoint predicts the risk of Lassa fever outbreaks by analyzing population density, historical data, and environmental risk factors in a specified region.
+      operationId: ai_forecast_risk_analysis_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RiskAnalysisRequest'
+        required: true
+      responses:
+        "200":
+          description: Risk analysis completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskAnalysisResponse'
+        "400":
+          description: Invalid risk analysis parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/iot/ingest:
+    post:
+      summary: Ingest IoT sensor data for real-time monitoring.
+      description: |
+        This endpoint processes live IoT sensor data for real-time monitoring of Mastomys habitats. It validates and preprocesses the sensor readings for further analysis.
+      operationId: ai_iot_ingest_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IoTIngestResponse/properties/processed_data'
+        required: true
+      responses:
+        "200":
+          description: IoT data ingested successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IoTIngestResponse'
+        "400":
+          description: Invalid IoT data format or parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/community/submit:
+    post:
+      summary: Submit community observations.
+      description: |
+        This endpoint allows users to submit images, videos, or descriptions of Mastomys observations. Submissions are reviewed manually or via AI for further analysis.
+      operationId: ai_community_submit_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommunityObservationRequest'
+        required: true
+      responses:
+        "200":
+          description: Observation submitted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityObservationResponse'
+        "400":
+          description: Invalid submission parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/explain:
+    post:
+      summary: Explain AI predictions.
+      description: |
+        This endpoint provides explainable AI outputs for predictions made by the system. It offers insights into the factors influencing specific predictions.
+      operationId: ai_explain_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExplainRequest'
+        required: true
+      responses:
+        "200":
+          description: Explanation generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExplainResponse'
+        "400":
+          description: Invalid prediction ID or parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /ai/habitats/geospatial-analyze:
+    post:
+      summary: Perform geospatial habitat analysis.
+      description: |
+        This endpoint generates geospatial heatmaps and GeoJSON data for Mastomys habitat suitability. It supports temporal analysis for long-term studies.
+      operationId: ai_habitats_geospatial_analyze_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GeospatialAnalysisRequest'
+        required: true
+      responses:
+        "200":
+          description: Geospatial analysis completed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeospatialAnalysisResponse'
+        "400":
+          description: Invalid geospatial parameters.
+        "500":
+          description: Internal server error.
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    HabitatAnalysisRequest:
+      properties:
+        region:
+          description: "The region of interest (e.g., Nigeria)."
+        satellite_image_url:
+          description: URL of the satellite imagery for analysis.
+        environmental_data:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_environmental_data'
+      description: Request schema for analyzing potential habitats.
+    HabitatPrediction:
+      properties:
+        habitat_score:
+          description: Suitability score for the region (0-1).
+        risk_factors:
+          description: Key ecological risks identified in the habitat.
+          items: {}
+      description: Response schema for habitat analysis predictions.
+      example:
+        habitat_score: ""
+        risk_factors: ""
+    DetectionPattern:
+      properties:
+        image_url:
+          description: URL of the image to analyze.
+      description: Request schema for detecting Mastomys populations.
+    DetectionPatternResponse:
+      properties:
+        detections:
+          description: List of detected objects and their metrics.
+          items:
+            properties:
+              bounding_box:
+                description: "Coordinates of the detected object (x_min, y_min, x_max,\
+                  \ y_max)."
+                items: {}
+              confidence:
+                description: Confidence score of the detection (0-1).
+      description: Response schema for detection results.
+      example:
+        detections: ""
+    VideoStreamRequest:
+      properties:
+        video_url:
+          description: URL to the video stream.
+        analysis_parameters:
+          $ref: '#/components/schemas/VideoStreamRequest_analysis_parameters'
+      description: Request schema for analyzing live video streams.
+    VideoStreamResponse:
+      properties:
+        processed_video_url:
+          description: URL to the processed video.
+        detections_summary:
+          $ref: '#/components/schemas/VideoStreamResponse_detections_summary'
+      description: Response schema for video stream analysis.
+      example:
+        detections_summary:
+          detections_count: ""
+          timestamps: ""
+        processed_video_url: ""
+    ModelTrainingRequest:
+      properties:
+        training_data_url:
+          description: URL to the dataset used for training.
+        model_type:
+          description: "Type of model to train (e.g., LSTM, XGBoost, Random Forest)."
+        parameters:
+          $ref: '#/components/schemas/ModelTrainingRequest_parameters'
+      description: Request schema for training predictive models.
+    ModelTrainingResponse:
+      properties:
+        status:
+          description: "Status of the training process (e.g., \"Training complete\"\
+            )."
+        evaluation_metrics:
+          $ref: '#/components/schemas/ModelTrainingResponse_evaluation_metrics'
+      description: Response schema for model training.
+      example:
+        evaluation_metrics:
+          f1_score: ""
+          precision: ""
+          recall: ""
+          accuracy: ""
+        status: ""
+    RAGQueryRequest:
+      properties:
+        query:
+          description: The user query to process.
+      description: Request schema for Retrieval-Augmented Generation queries.
+    RAGQueryResponse:
+      properties:
+        answer:
+          description: The AI-generated answer to the user query.
+        sources:
+          description: References or URLs used for answering the query.
+          items: {}
+      description: Response schema for RAG queries.
+      example:
+        answer: ""
+        sources: ""
+    DataManagementOpenRequest:
+      properties:
+        dataset_url:
+          description: "URL to the dataset to open (e.g., a CSV or GeoJSON file)."
+      description: Request schema for opening and loading datasets.
+    DataManagementOpenResponse:
+      properties:
+        message:
+          description: Confirmation of successful dataset loading.
+      description: Response schema for dataset opening and loading.
+      example:
+        message: ""
+    DataManagementTransformRequest:
+      properties:
+        dataset_url:
+          description: URL to the dataset to transform.
+        transformation_type:
+          description: "Type of transformation to apply (e.g., normalization, encoding)."
+        parameters:
+          $ref: '#/components/schemas/DataManagementTransformRequest_parameters'
+      description: Request schema for dataset transformations.
+    DataManagementTransformResponse:
+      properties:
+        transformed_data_url:
+          description: URL to the transformed dataset.
+      description: Response schema for dataset transformations.
+      example:
+        transformed_data_url: ""
+    RiskAnalysisRequest:
+      properties:
+        region:
+          description: Target region for risk prediction.
+        historical_data_url:
+          description: URL to historical population and outbreak data.
+      description: Request schema for outbreak risk analysis.
+    RiskAnalysisResponse:
+      properties:
+        risk_score:
+          description: Predicted risk score (0-1 scale).
+        risk_factors:
+          description: Key factors contributing to the predicted risk.
+          items: {}
+      description: Response schema for outbreak risk analysis.
+      example:
+        risk_score: ""
+        risk_factors: ""
+    IoTIngestResponse:
+      properties:
+        status:
+          description: Status of the ingestion process.
+        processed_data:
+          description: Preprocessed and validated sensor data.
+      description: Response schema for IoT data ingestion.
+      example:
+        processed_data: ""
+        status: ""
+    CommunityObservationRequest:
+      properties:
+        image_file:
+          description: Image file of the observation.
+          format: binary
+        video_file:
+          description: Video file of the observation.
+          format: binary
+        description:
+          description: Additional details about the observation.
+      description: Request schema for submitting community observations.
+    CommunityObservationResponse:
+      properties:
+        submission_id:
+          description: Unique identifier for the submitted observation.
+        review_status:
+          description: Status of the observation review process.
+      description: Response schema for community observation submissions.
+      example:
+        submission_id: ""
+        review_status: ""
+    ExplainRequest:
+      properties:
+        prediction_id:
+          description: Unique identifier for the prediction to explain.
+      description: Request schema for explainable AI outputs.
+    ExplainResponse:
+      properties:
+        explanation:
+          $ref: '#/components/schemas/ExplainResponse_explanation'
+      description: Response schema for explainable AI outputs.
+      example:
+        explanation:
+          shap_values: ""
+          decision_reason: ""
+    GeospatialAnalysisRequest:
+      properties:
+        region:
+          description: Target region for geospatial analysis.
+        time_range:
+          $ref: '#/components/schemas/GeospatialAnalysisRequest_time_range'
+      description: Request schema for geospatial habitat analysis.
+    GeospatialAnalysisResponse:
+      properties:
+        heatmap_url:
+          description: URL to the generated heatmap.
+        geojson_data:
+          description: Habitat data in GeoJSON format.
+      description: Response schema for geospatial habitat analysis.
+      example:
+        heatmap_url: ""
+        geojson_data: ""
+    HabitatAnalysisRequest_environmental_data:
+      properties:
+        temperature:
+          description: Average temperature in degrees Celsius.
+        rainfall:
+          description: Average monthly rainfall in millimeters.
+        vegetation_index:
+          description: Normalized vegetation index score (0 to 1 scale).
+        soil_moisture:
+          description: Soil moisture level as a percentage (0-100%).
+        elevation:
+          description: Elevation of the region in meters.
+      description: Environmental parameters for habitat analysis.
+    VideoStreamRequest_analysis_parameters:
+      properties:
+        confidence_threshold:
+          description: Minimum confidence score for detections.
+      description: Parameters for stream analysis.
+    VideoStreamResponse_detections_summary:
+      properties:
+        detections_count:
+          description: Total number of detections.
+        timestamps:
+          description: Timestamps of detected Mastomys events.
+          items: {}
+      description: Summary of detections in the video.
+      example:
+        detections_count: ""
+        timestamps: ""
+    ModelTrainingRequest_parameters:
+      properties:
+        learning_rate:
+          description: Learning rate for the optimization algorithm.
+        epochs:
+          description: Number of training epochs.
+      description: Hyperparameters for model training.
+    ModelTrainingResponse_evaluation_metrics:
+      properties:
+        accuracy:
+          description: Accuracy of the trained model.
+        precision:
+          description: Precision score of the trained model.
+        recall:
+          description: Recall score of the trained model.
+        f1_score:
+          description: F1 score of the trained model.
+      description: Metrics for evaluating the trained model.
+      example:
+        f1_score: ""
+        precision: ""
+        recall: ""
+        accuracy: ""
+    DataManagementTransformRequest_parameters:
+      properties:
+        scaling:
+          description: "Scaling method to apply (e.g., min-max, standard)."
+      description: Transformation parameters.
+    ExplainResponse_explanation:
+      properties:
+        shap_values:
+          description: Feature contributions to the prediction.
+          items: {}
+        decision_reason:
+          description: Human-readable explanation of the prediction.
+      description: Explanation of the AI prediction.
+      example:
+        shap_values: ""
+        decision_reason: ""
+    GeospatialAnalysisRequest_time_range:
+      properties:
+        start_date:
+          description: Start date for the analysis.
+          format: date
+        end_date:
+          description: End date for the analysis.
+          format: date
+      description: Temporal range for the analysis.
+

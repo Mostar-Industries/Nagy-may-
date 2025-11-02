@@ -1,0 +1,567 @@
+openapi: 3.1.0
+info:
+  title: MNTRK API by MoStar Industries
+  description: |
+    This API provides robust tools for tracking Mastomys Natalensis populations, analyzing ecological trends, and supporting Lassa fever outbreak management. It is aligned with Nigeria CDC requirements and integrates with Supabase.
+  contact:
+    name: Mastomys Tracker Support Team
+    url: https://www.mo-overlord.tech/
+    email: support@mo-overlord.tech
+  version: 1.0.1
+servers:
+- url: https://api.mo-overlord.tech/
+  description: Production Server
+- url: https://staging.mo-overlord.tech/
+  description: Staging Server
+paths:
+  /api/habitats:
+    post:
+      summary: Analyze satellite or environmental data for Mastomys Natalensis habitats
+      operationId: analyze_habitats
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HabitatAnalysisRequest'
+        required: true
+      responses:
+        "200":
+          description: Habitat analysis successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HabitatAnalysisResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/detection-patterns:
+    post:
+      summary: Record detection patterns of Mastomys Natalensis
+      operationId: record_detection_patterns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetectionPattern'
+        required: true
+      responses:
+        "200":
+          description: Detection recorded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetectionPatternResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/vision/analyze:
+    post:
+      summary: Analyze images for Mastomys Natalensis
+      operationId: analyze_vision
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VisionAnalyzeRequest'
+        required: true
+      responses:
+        "200":
+          description: Image analysis successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisionAnalyzeResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/augmentation/remote-sensing:
+    post:
+      summary: Apply augmentation to remote sensing data
+      operationId: apply_augmentation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RemoteSensingAugmentationRequest'
+        required: true
+      responses:
+        "200":
+          description: Augmentation applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoteSensingAugmentationResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/data-transformation:
+    post:
+      summary: Transform and clean datasets
+      operationId: transform_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataTransformationRequest'
+        required: true
+      responses:
+        "200":
+          description: Data transformation successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataTransformationResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/anomaly-detection:
+    post:
+      summary: Detect anomalies in data
+      operationId: detect_anomalies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnomalyDetectionRequest'
+        required: true
+      responses:
+        "200":
+          description: Anomalies detected successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnomalyDetectionResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/adaptive-learning:
+    post:
+      summary: Configure adaptive learning
+      operationId: configure_adaptive_learning
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdaptiveLearningRequest'
+        required: true
+      responses:
+        "200":
+          description: Adaptive learning configured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdaptiveLearningResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/predict-movements:
+    get:
+      summary: Predict Mastomys movements
+      operationId: predict_movements
+      parameters:
+      - name: latitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema: {}
+      - name: longitude
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema: {}
+      - name: date
+        in: query
+        required: true
+        style: form
+        explode: true
+        schema:
+          format: date
+      responses:
+        "200":
+          description: Movements predicted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementPredictionResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/vision/google-vision:
+    post:
+      summary: Integrate with Google Vision API
+      operationId: integrate_google_vision
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleVisionRequest'
+        required: true
+      responses:
+        "200":
+          description: Google Vision integration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoogleVisionResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/modeling/predictive:
+    post:
+      summary: Execute predictive modeling
+      operationId: predictive_modeling
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PredictiveModelRequest'
+        required: true
+      responses:
+        "200":
+          description: Predictive modeling executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictiveModelResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/langchain/generate:
+    post:
+      summary: Generate AI insights using LangChain
+      operationId: generate_lang_chain_insights
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LangChainRequest'
+        required: true
+      responses:
+        "200":
+          description: Insights generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LangChainResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/supabase/query:
+    post:
+      summary: Query data from Supabase
+      operationId: query_supabase_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupabaseQueryRequest'
+        required: true
+      responses:
+        "200":
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupabaseQueryResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+  /api/integration/postgres/query:
+    post:
+      summary: Query data from Postgres database
+      operationId: query_postgres_data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostgresQueryRequest'
+        required: true
+      responses:
+        "200":
+          description: Query executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostgresQueryResponse'
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+      x-openapi-router-controller: swagger_server.controllers.default_controller
+components:
+  schemas:
+    HabitatAnalysisRequest:
+      properties:
+        satellite_data:
+          description: Base64 encoded satellite image
+        environmental_data:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_environmental_data'
+        geographic_coordinates:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_geographic_coordinates'
+        analysis_parameters:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_analysis_parameters'
+    HabitatAnalysisResponse:
+      properties:
+        id: {}
+        location:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_geographic_coordinates'
+        suitability_score: {}
+      example:
+        suitability_score: ""
+        location:
+          latitude: ""
+          longitude: ""
+        id: ""
+    DetectionPattern:
+      properties:
+        id: {}
+        location:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_geographic_coordinates'
+    DetectionPatternResponse:
+      properties:
+        id: {}
+        location:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_geographic_coordinates'
+      example:
+        location:
+          latitude: ""
+          longitude: ""
+        id: ""
+    VisionAnalyzeRequest:
+      properties:
+        image: {}
+        confidence_threshold: {}
+    VisionAnalyzeResponse:
+      properties:
+        status: {}
+        detections:
+          items:
+            properties:
+              bounding_box: {}
+              confidence: {}
+              classification: {}
+      example:
+        status: ""
+        detections: ""
+    RemoteSensingAugmentationRequest:
+      properties:
+        dataset_url: {}
+        augmentation_type: {}
+    RemoteSensingAugmentationResponse:
+      properties:
+        message: {}
+        results_url: {}
+      example:
+        results_url: ""
+        message: ""
+    DataTransformationRequest:
+      properties:
+        dataset_url: {}
+    DataTransformationResponse:
+      properties:
+        message: {}
+      example:
+        message: ""
+    AnomalyDetectionRequest:
+      properties:
+        input_file: {}
+        detection_method: {}
+    AnomalyDetectionResponse:
+      properties:
+        message: {}
+        anomaly_results_url: {}
+      example:
+        anomaly_results_url: ""
+        message: ""
+    AdaptiveLearningRequest:
+      properties:
+        model_type: {}
+    AdaptiveLearningResponse:
+      properties:
+        message: {}
+      example:
+        message: ""
+    MovementPredictionResponse:
+      properties:
+        predictions:
+          items:
+            properties:
+              latitude: {}
+              longitude: {}
+              confidence: {}
+      example:
+        predictions: ""
+    GoogleVisionRequest:
+      properties:
+        image:
+          description: Base64-encoded image data
+        features:
+          description: "Google Vision features to analyze (e.g., LABEL_DETECTION)"
+          items: {}
+    GoogleVisionResponse:
+      properties:
+        labels:
+          description: Detected labels
+          items: {}
+        objects:
+          items:
+            properties:
+              name: {}
+              bounding_box: {}
+        text:
+          description: Detected text
+      example:
+        objects: ""
+        text: ""
+        labels: ""
+    PredictiveModelRequest:
+      properties:
+        model_type:
+          description: The predictive model to use
+          enum:
+          - linear_regression
+          - random_forest
+          - lstm
+        input_features:
+          $ref: '#/components/schemas/HabitatAnalysisRequest_environmental_data'
+        output_type:
+          description: Type of prediction output
+          enum:
+          - probability
+          - forecast
+    PredictiveModelResponse:
+      properties:
+        status: {}
+        predictions:
+          items:
+            properties:
+              location:
+                properties:
+                  latitude: {}
+                  longitude: {}
+              suitability_score: {}
+              forecast_data: {}
+      example:
+        predictions: ""
+        status: ""
+    LangChainRequest:
+      properties:
+        prompt:
+          description: Input prompt for LangChain
+        options:
+          description: Additional options for generating insights
+    LangChainResponse:
+      properties:
+        generated_text:
+          description: Text generated by LangChain
+        metadata:
+          description: Metadata related to the generation process
+      example:
+        metadata: ""
+        generated_text: ""
+    SupabaseQueryRequest:
+      properties:
+        query:
+          description: SQL query to execute on Supabase
+        parameters:
+          additionalProperties: {}
+          description: Parameters for the SQL query
+    SupabaseQueryResponse:
+      properties:
+        data:
+          description: Query results
+          items: {}
+        metadata:
+          description: Query execution metadata
+      example:
+        metadata: ""
+        data: ""
+    PostgresQueryRequest:
+      properties:
+        query:
+          description: SQL query to execute on Postgres
+        parameters:
+          additionalProperties: {}
+          description: Parameters for the SQL query
+    PostgresQueryResponse:
+      properties:
+        data:
+          description: Query results from Postgres
+          items: {}
+        metadata:
+          description: Query execution metadata
+      example:
+        metadata: ""
+        data: ""
+    HabitatAnalysisRequest_environmental_data:
+      properties:
+        temperature: {}
+        rainfall: {}
+        vegetation_index: {}
+    HabitatAnalysisRequest_geographic_coordinates:
+      properties:
+        latitude: {}
+        longitude: {}
+      example:
+        latitude: ""
+        longitude: ""
+    HabitatAnalysisRequest_analysis_parameters:
+      properties:
+        vegetation_threshold: {}
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/2e270476-4cbe-4c7f-b99a-8710d225bcc6/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/2e270476-4cbe-4c7f-b99a-8710d225bcc6/oauth2/v2.0/token
+          scopes:
+            read:userfiles: Grants read access to user files
+            write:userfiles: Grants write access to user files
+            data:read: Grants read access to all data
+            data:write: Grants write access to all data
+      x-tokenInfoFunc: swagger_server.controllers.authorization_controller.check_OAuth2
+      x-scopeValidateFunc: swagger_server.controllers.authorization_controller.validate_scope_OAuth2
+    openAIAuth:
+      type: apiKey
+      description: |
+        OPENAI API key authentication. Include the key in the `Authorization` header as: `Bearer YOUR_OPENAI_API_KEY`
+      name: Authorization
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_openAIAuth
+    GoogleVisionKey:
+      type: apiKey
+      description: |
+        Use your Google Vision API key for authentication. Include it in the `X-Api-Key` header:
+        ```
+        X-Api-Key: YOUR_GOOGLE_VISION_API_KEY
+      name: X-Api-Key
+      in: header
+      x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_GoogleVisionKey
+
