@@ -1,0 +1,189 @@
+{
+  "app_name": "Skyhawk Mastomys Realtime Tracker",
+  "version": "0.2.1",
+  "description": "AI-powered realtime surveillance system for Mastomys natalensis (rodent) detection using YOLO, risk scoring, and intelligent agent querying",
+  "templates_used": ["video_library", "document_scanner", "bolt", "spark", "voice_chat", "google", "maps"],
+  "template_mapping": {
+    "video_library": {
+      "purpose": "RTSP video ingestion and frame analysis",
+      "component": "MNTRK_API + ml_service",
+      "capability": "Captures video streams, extracts frames, runs YOLO detection"
+    },
+    "document_scanner": {
+      "purpose": "Individual frame/image processing and understanding",
+      "component": "ml_service/models/image_processor.py",
+      "capability": "Image validation, preprocessing, format conversion"
+    },
+    "bolt": {
+      "purpose": "Real-time speed and low-latency inference",
+      "component": "ml_service YOLO inference + risk scoring",
+      "capability": "Sub-500ms detection + risk calculation"
+    },
+    "spark": {
+      "purpose": "Gemini-powered intelligence and risk fusion",
+      "component": "MNTRK_Agent_API risk scoring logic",
+      "capability": "Fuses YOLO detections + environmental data into risk scores"
+    },
+    "voice_chat": {
+      "purpose": "Conversational agent interface for system queries",
+      "component": "MNTRK_Agent_API agent endpoints",
+      "capability": "Multi-turn Q&A about detections, alerts, and analysis"
+    },
+    "google": {
+      "purpose": "External context augmentation (weather, outbreak news)",
+      "component": "MNTRK_Agent_API contextual data retrieval",
+      "capability": "Enriches risk analysis with current events and trends"
+    },
+    "maps": {
+      "purpose": "Geospatial visualization and field routing",
+      "component": "Frontend Cesium.js + backend geospatial endpoints",
+      "capability": "Maps detection locations, trap sites, technician routes"
+    }
+  },
+  "services": {
+    "ml_service": {
+      "name": "ML Service",
+      "port": 5001,
+      "base_url": "http://localhost:5001",
+      "role": "Core YOLO inference + risk scoring",
+      "endpoints": [
+        {
+          "path": "/health",
+          "method": "GET",
+          "description": "Service health check"
+        },
+        {
+          "path": "/detect",
+          "method": "POST",
+          "description": "Single image YOLO inference",
+          "input": "image file",
+          "output": "bboxes, confidence scores, processing time"
+        },
+        {
+          "path": "/detect/batch",
+          "method": "POST",
+          "description": "Batch image inference",
+          "input": "multiple image files",
+          "output": "batch results with detections"
+        },
+        {
+          "path": "/model/info",
+          "method": "GET",
+          "description": "Model metadata and performance stats"
+        }
+      ]
+    },
+    "api_service": {
+      "name": "REST API Service",
+      "port": 5002,
+      "base_url": "http://localhost:5002",
+      "role": "REST endpoint for detections, image upload, database integration",
+      "endpoints": [
+        {
+          "path": "/predict",
+          "method": "POST",
+          "description": "Upload image and get YOLO predictions + risk score"
+        },
+        {
+          "path": "/detections",
+          "method": "GET",
+          "description": "Fetch detections from database with filters"
+        },
+        {
+          "path": "/detections",
+          "method": "POST",
+          "description": "Store new detection in database"
+        },
+        {
+          "path": "/detections/{id}",
+          "method": "GET",
+          "description": "Get specific detection by ID"
+        },
+        {
+          "path": "/ui/",
+          "method": "GET",
+          "description": "Swagger API documentation"
+        }
+      ]
+    },
+    "agent_service": {
+      "name": "Agent API Service",
+      "port": 5003,
+      "base_url": "http://localhost:5003",
+      "role": "LLM-powered conversational interface for querying detections and risk analysis",
+      "endpoints": [
+        {
+          "path": "/agent/explain",
+          "method": "GET",
+          "description": "Get LLM-powered explanation for a detection",
+          "query_params": ["detection_id"]
+        },
+        {
+          "path": "/agent/alerts",
+          "method": "GET",
+          "description": "List recent high-risk alerts with AI summary"
+        },
+        {
+          "path": "/agent/query",
+          "method": "POST",
+          "description": "Natural language query about detections",
+          "input": "user query string"
+        },
+        {
+          "path": "/video/analyze",
+          "method": "POST",
+          "description": "Analyze video stream for rodent detections",
+          "input": "RTSP URL or video file"
+        },
+        {
+          "path": "/risk/analyze",
+          "method": "POST",
+          "description": "Analyze risk factors for a location",
+          "input": "detection data + environmental context"
+        },
+        {
+          "path": "/ui/",
+          "method": "GET",
+          "description": "Swagger API documentation"
+        }
+      ]
+    }
+  },
+  "database": {
+    "type": "PostgreSQL",
+    "name": "mastomys_tracker",
+    "tables": [
+      {
+        "name": "detection_patterns",
+        "description": "Main detection records from YOLO inference",
+        "columns": [
+          "id (PK)",
+          "latitude",
+          "longitude",
+          "detection_timestamp",
+          "detection_count",
+          "source",
+          "environmental_context (JSONB)",
+          "risk_assessment (JSONB)",
+          "created_at"
+        ]
+      }
+    ]
+  },
+  "deployment": {
+    "local_development": {
+      "method": "docker-compose",
+      "command": "docker-compose up -d",
+      "services_status": {
+        "postgres": "http://localhost:5432",
+        "ml_service": "http://localhost:5001/health",
+        "api_service": "http://localhost:5002/ui/",
+        "agent_service": "http://localhost:5003/ui/"
+      }
+    },
+    "production": {
+      "method": "Kubernetes or Cloud Run",
+      "notes": "Use managed PostgreSQL (Cloud SQL or Neon), separate container registries for each service"
+    }
+  }
+}

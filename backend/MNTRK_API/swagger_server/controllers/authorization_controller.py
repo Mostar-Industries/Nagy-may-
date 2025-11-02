@@ -14,5 +14,3 @@ def validate_scope_OAuth2(required_scopes, token_scopes):
 
 def check_openAIAuth(api_key, required_scopes):
     return {'test_key': 'test_value'}
-
-

@@ -559,9 +559,8 @@ components:
       type: apiKey
       description: |
         Use your Google Vision API key for authentication. Include it in the `X-Api-Key` header:
-        ```
+        \`\`\`
         X-Api-Key: YOUR_GOOGLE_VISION_API_KEY
       name: X-Api-Key
       in: header
       x-apikeyInfoFunc: swagger_server.controllers.authorization_controller.check_GoogleVisionKey
-
