@@ -10,6 +10,7 @@ import RecentDetections from "@/components/recent-detections"
 import RiskAlerts from "@/components/risk-alerts"
 import HabitatSuitability from "@/components/habitat-suitability"
 import AIAssistant from "@/components/ai-assistant"
+import { DetectionUploader } from "@/components/detection-uploader"
 
 export default function MonitoringPage() {
   const [isDark, setIsDark] = useState(false)
@@ -291,6 +292,7 @@ export default function MonitoringPage() {
 
             {/* Right Sidebar */}
             <div className="space-y-6">
+              <DetectionUploader />
               <RiskAlerts />
               <HabitatSuitability />
             </div>
