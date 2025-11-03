@@ -3,22 +3,23 @@ import { type NextRequest, NextResponse } from "next/server"
 const protectedRoutes = ["/monitoring", "/api/detections", "/api/notes"]
 
 export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
+  // Authentication disabled for now - will be re-enabled later
+  // const pathname = request.nextUrl.pathname
 
-  // Check if route requires authentication
-  const isProtected = protectedRoutes.some((route) => pathname.startsWith(route))
+  // // Check if route requires authentication
+  // const isProtected = protectedRoutes.some((route) => pathname.startsWith(route))
 
-  if (isProtected) {
-    const authHeader = request.headers.get("authorization")
+  // if (isProtected) {
+  //   const authHeader = request.headers.get("authorization")
 
-    if (!authHeader) {
-      // Redirect to login or return 401
-      if (pathname.startsWith("/api")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      }
-      return NextResponse.redirect(new URL("/login", request.url))
-    }
-  }
+  //   if (!authHeader) {
+  //     // Redirect to login or return 401
+  //     if (pathname.startsWith("/api")) {
+  //       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  //     }
+  //     return NextResponse.redirect(new URL("/login", request.url))
+  //   }
+  // }
 
   return NextResponse.next()
 }

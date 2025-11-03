@@ -23,35 +23,13 @@ export const API_ENDPOINTS = {
 }
 
 export function isAPIAvailable(apiName: "SORMAS" | "WHO_AFRO" | "CDC" | "NPHCDA"): boolean {
-  const keyMap = {
-    SORMAS: "SORMAS_API_KEY",
-    WHO_AFRO: "WHO_AFRO_API_KEY",
-    CDC: "CDC_API_KEY",
-    NPHCDA: "NPHCDA_API_KEY",
-  }
-  return !!process.env[keyMap[apiName]]
-}
-
-function getAPIKey(apiName: "SORMAS" | "WHO_AFRO" | "CDC" | "NPHCDA"): string | null {
-  const keyMap = {
-    SORMAS: "SORMAS_API_KEY",
-    WHO_AFRO: "WHO_AFRO_API_KEY",
-    CDC: "CDC_API_KEY",
-    NPHCDA: "NPHCDA_API_KEY",
-  }
-  return process.env[keyMap[apiName]] || null
+  // All APIs are available via open source URLs - no API keys required
+  return true
 }
 
 export async function fetchFromSORMAS(endpoint: string, options?: RequestInit) {
-  const key = getAPIKey("SORMAS")
-  if (!key) {
-    console.warn("[v0] SORMAS API key not configured")
-    return { error: "SORMAS API not configured", data: [] }
-  }
-
   const url = `${API_ENDPOINTS.SORMAS.base}${endpoint}`
   const headers = {
-    Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     ...options?.headers,
   }
@@ -67,15 +45,8 @@ export async function fetchFromSORMAS(endpoint: string, options?: RequestInit) {
 }
 
 export async function fetchFromWHOAFRO(endpoint: string, options?: RequestInit) {
-  const key = getAPIKey("WHO_AFRO")
-  if (!key) {
-    console.warn("[v0] WHO AFRO API key not configured")
-    return { error: "WHO AFRO API not configured", data: [] }
-  }
-
   const url = `${API_ENDPOINTS.WHO_AFRO.base}${endpoint}`
   const headers = {
-    Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     ...options?.headers,
   }
@@ -91,15 +62,8 @@ export async function fetchFromWHOAFRO(endpoint: string, options?: RequestInit) 
 }
 
 export async function fetchFromCDC(endpoint: string, options?: RequestInit) {
-  const key = getAPIKey("CDC")
-  if (!key) {
-    console.warn("[v0] CDC API key not configured")
-    return { error: "CDC API not configured", data: [] }
-  }
-
   const url = `${API_ENDPOINTS.CDC.base}${endpoint}`
   const headers = {
-    Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     ...options?.headers,
   }
@@ -115,15 +79,8 @@ export async function fetchFromCDC(endpoint: string, options?: RequestInit) {
 }
 
 export async function fetchFromNPHCDA(endpoint: string, options?: RequestInit) {
-  const key = getAPIKey("NPHCDA")
-  if (!key) {
-    console.warn("[v0] NPHCDA API key not configured")
-    return { error: "NPHCDA API not configured", data: [] }
-  }
-
   const url = `${API_ENDPOINTS.NPHCDA.base}${endpoint}`
   const headers = {
-    Authorization: `Bearer ${key}`,
     "Content-Type": "application/json",
     ...options?.headers,
   }
