@@ -8,6 +8,20 @@ export const DetectionSchema = z.object({
   description: z.string().min(1).max(1000),
 })
 
+export const DetectionMetricsSchema = z.object({
+  species: z.string(),
+  species_confidence: z.number().min(0).max(1),
+  model_inference_time_ms: z.number().positive(),
+  model_accuracy: z.number().min(0).max(1),
+  processing_time_ms: z.number().positive(),
+})
+
+export const ExtendedDetectionSchema = DetectionSchema.extend({
+  species: z.string().optional(),
+  species_confidence: z.number().min(0).max(1).optional(),
+  model_inference_time_ms: z.number().positive().optional(),
+})
+
 export const NoteSchema = z.object({
   title: z.string().min(1).max(255),
   shared: z.boolean().default(false),
@@ -24,6 +38,8 @@ export const UserInputSchema = z.object({
 })
 
 export type Detection = z.infer<typeof DetectionSchema>
+export type DetectionMetrics = z.infer<typeof DetectionMetricsSchema>
+export type ExtendedDetection = z.infer<typeof ExtendedDetectionSchema>
 export type Note = z.infer<typeof NoteSchema>
 export type Paragraph = z.infer<typeof ParagraphSchema>
 export type UserInput = z.infer<typeof UserInputSchema>

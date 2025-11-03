@@ -4,6 +4,7 @@ import { DetectionSchema } from "@/lib/validation"
 import { requireAuth } from "@/lib/auth"
 import { logAuditEvent } from "@/lib/audit"
 import { z } from "zod" // Added import for z
+import { createClient } from "@/lib/supabase/server"
 
 const sql = neon(process.env.DATABASE_URL || "")
 
@@ -11,15 +12,22 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth()
 
-    const detections = await sql`
-      SELECT * FROM detection_patterns
-      ORDER BY detection_timestamp DESC
-      LIMIT 100
-    `
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from("detection_patterns")
+      .select("*")
+      .order("detection_timestamp", { ascending: false })
+      .limit(100)
+
+    if (error) {
+      console.error("[v0] Supabase error:", error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     await logAuditEvent(user.id, "READ", "detection_patterns", null)
 
-    return NextResponse.json(detections)
+    return NextResponse.json(data)
   } catch (error) {
     console.error("[v0] GET detections error:", error)
     return NextResponse.json({ error: "Failed to fetch detections" }, { status: 500 })
@@ -33,25 +41,31 @@ export async function POST(request: NextRequest) {
 
     const validated = DetectionSchema.parse(body)
 
-    const result = await sql`
-      INSERT INTO detection_patterns (
-        latitude, longitude, detection_count, source, 
-        environmental_context, risk_assessment
-      )
-      VALUES (
-        ${validated.latitude},
-        ${validated.longitude},
-        1,
-        'user_submission',
-        ${JSON.stringify({ type: validated.type })},
-        ${JSON.stringify({ confidence: validated.confidence })}
-      )
-      RETURNING *
-    `
+    const supabase = await createClient()
 
-    await logAuditEvent(user.id, "CREATE", "detection_patterns", result[0].id, validated)
+    const { data, error } = await supabase
+      .from("detection_patterns")
+      .insert([
+        {
+          latitude: validated.latitude,
+          longitude: validated.longitude,
+          detection_count: 1,
+          source: "user_submission",
+          environmental_context: { type: validated.type },
+          risk_assessment: { confidence: validated.confidence },
+          detection_timestamp: new Date().toISOString(),
+        },
+      ])
+      .select()
 
-    return NextResponse.json(result[0], { status: 201 })
+    if (error) {
+      console.error("[v0] Supabase insert error:", error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    await logAuditEvent(user.id, "CREATE", "detection_patterns", data?.[0]?.id, validated)
+
+    return NextResponse.json(data?.[0], { status: 201 })
   } catch (error) {
     console.error("[v0] POST detections error:", error)
 

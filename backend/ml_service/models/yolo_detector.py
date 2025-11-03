@@ -53,8 +53,19 @@ class YOLODetector:
             detections = []
             for result in results:
                 boxes = result.boxes
-                
+
                 for i, box in enumerate(boxes):
+                    class_id = int(box.cls[0])
+                    confidence = float(box.conf[0])
+                    
+                    # Species mapping for YOLO classes
+                    species_map = {
+                        0: "Mastomys natalensis",
+                        1: "Mastomys coucha",
+                        2: "Other rodent",
+                        3: "Unknown"
+                    }
+                    
                     detection = {
                         "id": i,
                         "bbox": {
@@ -63,9 +74,11 @@ class YOLODetector:
                             "width": float(box.xyxy[0][2] - box.xyxy[0][0]),
                             "height": float(box.xyxy[0][3] - box.xyxy[0][1]),
                         },
-                        "confidence": float(box.conf[0]),
-                        "class": int(box.cls[0]),
-                        "class_name": result.names.get(int(box.cls[0]), "unknown")
+                        "confidence": confidence,
+                        "class": class_id,
+                        "class_name": result.names.get(class_id, "unknown"),
+                        "species": species_map.get(class_id, "Unknown"),
+                        "species_confidence": confidence,
                     }
                     detections.append(detection)
             
@@ -87,3 +100,4 @@ class YOLODetector:
         logger.info("[v0] Cleaning up YOLO detector")
         if hasattr(self, 'model'):
             del self.model
+</merged_code

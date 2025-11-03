@@ -1,39 +1,40 @@
 "use client"
 
-import { useDetections } from "@/hooks/use-detections"
+import { useRealtimeDetections } from "@/hooks/use-realtime-detections"
+import { useDetectionStats } from "@/hooks/use-detection-stats"
 
 export default function StatsCards() {
-  const { detections, loading } = useDetections()
+  const { detections, isLoading: isLoadingDetections } = useRealtimeDetections()
+  const stats = useDetectionStats(detections)
 
-  // Calculate stats from real data
-  const stats = [
+  const statCards = [
     {
       label: "Detections Today",
-      value: loading ? "..." : detections.length.toString(),
-      change: `${detections.length > 0 ? "+" : ""}${Math.floor(Math.random() * 20)}% from yesterday`,
+      value: isLoadingDetections ? "..." : stats.detections24h.toString(),
+      change: `${stats.total} total detections`,
       icon: "🔍",
       color: "indigo",
     },
     {
       label: "High Risk Areas",
-      value: loading ? "..." : detections.filter((d) => (d.risk_assessment?.confidence || 0) > 0.85).length.toString(),
-      change: "2 new hotspots",
+      value: isLoadingDetections ? "..." : stats.highRisk.toString(),
+      change: `${((stats.highRisk / Math.max(stats.total, 1)) * 100).toFixed(0)}% of total`,
       icon: "☢️",
       color: "red",
     },
     {
-      label: "Habitat Suitability",
-      value: loading ? "..." : (detections.length > 0 ? (6.8 + Math.random() * 2).toFixed(1) : "0").toString() + "/10",
-      change: "Similar to last week",
-      icon: "🌿",
-      color: "green",
-    },
-    {
-      label: "Model Accuracy",
-      value: loading ? "..." : "92.7%",
-      change: "+1.2% improvement",
+      label: "Avg Confidence",
+      value: isLoadingDetections ? "..." : `${(stats.avgConfidence * 100).toFixed(1)}%`,
+      change: "Model performance metric",
       icon: "🧠",
       color: "purple",
+    },
+    {
+      label: "Latest Detection",
+      value: isLoadingDetections ? "..." : stats.latestTime ? new Date(stats.latestTime).toLocaleTimeString() : "N/A",
+      change: "Most recent activity",
+      icon: "⏰",
+      color: "green",
     },
   ]
 
@@ -46,7 +47,7 @@ export default function StatsCards() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-      {stats.map((stat, idx) => (
+      {statCards.map((stat, idx) => (
         <div
           key={idx}
           className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 hover:shadow-lg hover:-translate-y-1 transition-all"

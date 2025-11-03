@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: skyhawk_postgres
+    environment:
+      POSTGRES_DB: mastomys
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - skyhawk
+
+  # YOLO ML Service
+  ml-service:
+    build:
+      context: ./ml_service
+      dockerfile: Dockerfile
+    container_name: skyhawk_ml
+    environment:
+      LOG_LEVEL: INFO
+      DEVICE: cpu
+    ports:
+      - "5001:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - skyhawk
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RTSP Capture Service
+  capture-service:
+    build:
+      context: ./capture_service
+      dockerfile: Dockerfile
+    container_name: skyhawk_capture
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_KEY: ${SUPABASE_KEY}
+      YOLO_API_URL: http://ml-service:5000
+      LOG_LEVEL: INFO
+      INFERENCE_INTERVAL: 5
+    depends_on:
+      ml-service:
+        condition: service_healthy
+    networks:
+      - skyhawk
+    restart: unless-stopped
+
+  # API Service
+  api-service:
+    build:
+      context: ./MNTRK_API
+      dockerfile: Dockerfile
+    container_name: skyhawk_api
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
+      YOLO_API_URL: http://ml-service:5000
+      LOG_LEVEL: INFO
+    ports:
+      - "5002:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    networks:
+      - skyhawk
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agent Service
+  agent-service:
+    build:
+      context: ./MNTRK_Agent_API
+      dockerfile: Dockerfile
+    container_name: skyhawk_agent
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
+      API_SERVICE_URL: http://api-service:5000
+      LOG_LEVEL: INFO
+    ports:
+      - "5003:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-service:
+        condition: service_healthy
+    networks:
+      - skyhawk
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  skyhawk:
+    driver: bridge
