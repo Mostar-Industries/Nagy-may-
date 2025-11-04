@@ -103,24 +103,18 @@ export async function saveDetectionToSupabase(payload: DetectionPayload): Promis
     , payload.detections[0])
     
     const { error } = await supabase
-      .from('detection_patterns')
+      .from('detections')
       .insert({
+        image_id: payload.image_id || `detection_${Date.now()}`,
         latitude: payload.latitude || 0,
         longitude: payload.longitude || 0,
-        detection_count: payload.detections.length,
-        source: payload.source,
-        environmental_context: {
-          image_id: payload.image_id,
-          processing_time_ms: payload.processing_time_ms,
-          detections: payload.detections,
-          metadata: payload.metadata
-        },
-        risk_assessment: {
-          confidence: topDetection.confidence,
-          species: topDetection.species,
-          class_name: topDetection.class_name
-        },
-        detection_timestamp: new Date().toISOString()
+        confidence: topDetection.confidence || 0.5,
+        label: topDetection.class_name || 'unknown',
+        species: topDetection.species || 'Mastomys natalensis',
+        source: payload.source || 'ml_inference',
+        bbox: topDetection.bbox || {},
+        metadata: payload.metadata || {},
+        processing_time_ms: payload.processing_time_ms
       })
     
     if (error) {

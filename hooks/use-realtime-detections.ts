@@ -36,11 +36,11 @@ export function useRealtimeDetections(): UseRealtimeDetectionsReturn {
   useEffect(() => {
     const initializeRealtimeDetections = async () => {
       try {
-        // Fetch initial detections
+        // Fetch initial detections from the correct table
         const { data, error: fetchError } = await supabase
-          .from("detection_patterns")
+          .from("detections")
           .select("*")
-          .order("detection_timestamp", { ascending: false })
+          .order("detected_at", { ascending: false })
           .limit(100)
 
         if (fetchError) {
@@ -49,25 +49,67 @@ export function useRealtimeDetections(): UseRealtimeDetectionsReturn {
           return
         }
 
-        setDetections(data || [])
+        // Map detections to expected format
+        const mappedData = (data || []).map((d: any) => ({
+          id: d.id,
+          latitude: d.latitude,
+          longitude: d.longitude,
+          detection_timestamp: d.detected_at,
+          detection_count: 1,
+          source: d.source || 'system',
+          environmental_context: {
+            species: d.species,
+            species_confidence: d.confidence,
+            label: d.label,
+            bbox: d.bbox
+          },
+          risk_assessment: {
+            confidence: d.confidence,
+            risk_score: 0.5,
+            risk_level: d.confidence > 0.8 ? 'HIGH' : d.confidence > 0.6 ? 'MEDIUM' : 'LOW'
+          },
+          created_at: d.detected_at
+        }))
+
+        setDetections(mappedData)
         setIsLoading(false)
         setIsConnected(true)
 
         // Subscribe to new insertions
         const channel: RealtimeChannel = supabase
-          .channel("public:detection_patterns")
+          .channel("public:detections")
           .on(
             "postgres_changes",
             {
               event: "INSERT",
               schema: "public",
-              table: "detection_patterns",
+              table: "detections",
             },
             (payload: any) => {
-              const newDetection = payload.new as Detection
+              const detection = payload.new
+              const newDetection = {
+                id: detection.id,
+                latitude: detection.latitude,
+                longitude: detection.longitude,
+                detection_timestamp: detection.detected_at,
+                detection_count: 1,
+                source: detection.source || 'system',
+                environmental_context: {
+                  species: detection.species,
+                  species_confidence: detection.confidence,
+                  label: detection.label,
+                  bbox: detection.bbox
+                },
+                risk_assessment: {
+                  confidence: detection.confidence,
+                  risk_score: 0.5,
+                  risk_level: detection.confidence > 0.8 ? 'HIGH' : detection.confidence > 0.6 ? 'MEDIUM' : 'LOW'
+                },
+                created_at: detection.detected_at
+              }
               setDetections((prev) => [newDetection, ...prev])
               setLastUpdate(new Date().toISOString())
-              console.log("[v0] New detection received:", newDetection)
+              console.log("[Realtime] New detection received:", newDetection)
             },
           )
           .subscribe()

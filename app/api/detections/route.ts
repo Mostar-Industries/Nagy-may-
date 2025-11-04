@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from("detection_patterns")
+      .from("detections")
       .select("*")
-      .order("detection_timestamp", { ascending: false })
+      .order("detected_at", { ascending: false })
       .limit(100)
 
     if (error) {
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    await logAuditEvent(user.id, "READ", "detection_patterns", null)
+    await logAuditEvent(user.id, "READ", "detections", null)
 
     return NextResponse.json(data)
   } catch (error) {
@@ -44,16 +44,17 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from("detection_patterns")
+      .from("detections")
       .insert([
         {
+          image_id: `manual_${Date.now()}`,
           latitude: validated.latitude,
           longitude: validated.longitude,
-          detection_count: 1,
+          confidence: validated.confidence,
+          label: "manual_detection",
+          species: "Mastomys natalensis",
           source: "user_submission",
-          environmental_context: { type: validated.type },
-          risk_assessment: { confidence: validated.confidence },
-          detection_timestamp: new Date().toISOString(),
+          metadata: { type: validated.type },
         },
       ])
       .select()
@@ -63,7 +64,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    await logAuditEvent(user.id, "CREATE", "detection_patterns", data?.[0]?.id, validated)
+    await logAuditEvent(user.id, "CREATE", "detections", data?.[0]?.id, validated)
 
     return NextResponse.json(data?.[0], { status: 201 })
   } catch (error) {

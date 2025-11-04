@@ -25,13 +25,13 @@ export async function GET(request: NextRequest) {
         
         // Subscribe to Supabase realtime changes
         const channel = supabase
-          .channel('public:detection_patterns')
+          .channel('public:detections')
           .on(
             'postgres_changes',
             {
               event: 'INSERT',
               schema: 'public',
-              table: 'detection_patterns',
+              table: 'detections',
             },
             (payload) => {
               const event = {

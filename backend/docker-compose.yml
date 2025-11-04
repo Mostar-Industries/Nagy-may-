@@ -109,12 +109,42 @@ services:
       retries: 3
       start_period: 20s
 
+  # Capture Service - Automated RTSP frame capture and inference
+  capture-service:
+    build:
+      context: ./capture_service
+      dockerfile: Dockerfile
+    container_name: skyhawk-capture-service
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-mastomys}:${POSTGRES_PASSWORD:-skyhawk_dev_2024}@postgres:5432/${POSTGRES_DATABASE:-mastomys_tracker}
+      YOLO_API_URL: http://ml-service:5000
+      SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      SUPABASE_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      INFERENCE_INTERVAL: ${INFERENCE_INTERVAL:-5}
+      MOTION_THRESHOLD: ${MOTION_THRESHOLD:-0.1}
+      MIN_CONFIDENCE: ${MIN_CONFIDENCE:-0.5}
+      ENABLE_SNAPSHOTS: ${ENABLE_SNAPSHOTS:-true}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    volumes:
+      - ./capture_service:/app
+      - capture_snapshots:/tmp/snapshots
+    networks:
+      - skyhawk-network
+    restart: unless-stopped
+
 volumes:
   postgres_data:
     driver: local
   ml_models:
     driver: local
   api_uploads:
+    driver: local
+  capture_snapshots:
     driver: local
 
 networks:
