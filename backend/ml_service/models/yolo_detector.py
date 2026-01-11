@@ -100,3 +100,4 @@ class YOLODetector:
         logger.info("[v0] Cleaning up YOLO detector")
         if hasattr(self, 'model'):
             del self.model
+</merged_code

@@ -4,14 +4,15 @@ const requiredServerEnvVars = ["DATABASE_URL", "POSTGRES_URL", "CESIUM_ION_TOKEN
 
 const optionalServerEnvVars = [
   "FLIGHTAWARE_API_KEY",
+  "SORMAS_API_KEY",
+  "WHO_AFRO_API_KEY",
+  "CDC_API_KEY",
+  "NPHCDA_API_KEY",
   "OPENWEATHER_API_KEY",
 ]
 
 // These should only be used if explicitly needed and should be accessed through server-side routes
-const optionalPublicEnvVars: string[] = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-]
+const optionalPublicEnvVars: string[] = []
 
 export function validateEnvironment() {
   const missing: string[] = []

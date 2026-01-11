@@ -1,5 +1,0 @@
-# Mock data files
-*.csv
-*.xlsx
-*.json
-!.gitignore

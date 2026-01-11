@@ -51,16 +51,6 @@ export default function CesiumMap() {
         navigationHelpButton: true,
       })
 
-      // Center map on Nigeria with zoomed out view
-      viewer.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(8.6753, 9.0820, 2500000), // Lng, Lat, Altitude (2.5M meters for country view)
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-90), // Looking straight down
-          roll: 0.0
-        }
-      })
-
       viewerInstanceRef.current = viewer
       setIsLoading(false)
     } catch (err) {

@@ -23,9 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script key="ethereum-fix" src="/ethereum-fix.js" />
         <link
-          key="cesium-widgets"
           rel="stylesheet"
           href="https://cesium.com/downloads/cesiumjs/releases/1.134/Build/Cesium/Widgets/widgets.css"
         />
