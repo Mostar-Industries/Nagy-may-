@@ -70,7 +70,7 @@ export default function MapPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [cesiumLoaded, setCesiumLoaded] = useState(false)
 
-  const [verticalExaggeration, setVerticalExaggeration] = useState(3.0)
+  const [verticalExaggeration, setVerticalExaggeration] = useState(1.0)
   const [relativeHeight, setRelativeHeight] = useState(0)
   const [showControls, setShowControls] = useState(false)
 
@@ -208,6 +208,18 @@ export default function MapPage() {
       initCesium()
     }
   }, [cesiumLoaded, detectionsLoading, detections])
+
+  useEffect(() => {
+    if (!viewerRef.current || !viewerInstanceRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      viewerInstanceRef.current?.resize()
+      viewerInstanceRef.current?.scene?.requestRender()
+    })
+
+    observer.observe(viewerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   if (error) {
     return (
@@ -399,7 +411,16 @@ export default function MapPage() {
           <span>Monitoring</span>
         </Link>
 
-        <div ref={viewerRef} style={{ width: "100%", height: "100%" }} />
+        <div
+          ref={viewerRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+          }}
+        />
 
         <div
           style={{

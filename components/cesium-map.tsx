@@ -21,7 +21,7 @@ export default function CesiumMap() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [cesiumLoaded, setCesiumLoaded] = useState(false)
 
-  const [verticalExaggeration, setVerticalExaggeration] = useState(3.0)
+  const [verticalExaggeration, setVerticalExaggeration] = useState(1.0)
   const [relativeHeight, setRelativeHeight] = useState(0)
   const [showControls, setShowControls] = useState(false)
 
@@ -57,31 +57,69 @@ export default function CesiumMap() {
 
       const viewer = new Cesium.Viewer(viewerRef.current, {
         terrainProvider: terrainProvider,
+        globe: false,
         animation: true,
         timeline: true,
         fullscreenButton: true,
-        baseLayerPicker: true,
-        geocoder: true,
+        baseLayerPicker: false,
         homeButton: true,
         infoBox: true,
         navigationHelpButton: true,
         skyAtmosphere: new Cesium.SkyAtmosphere(),
+        geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
       })
+
+            // Sine wave
+      const customHeightmapWidth = 32;
+      const customHeightmapHeight = 32;
+      interface CustomHeightmapCallback {
+        (x: number, y: number, level: number): Float32Array;
+      }
+
+      interface CustomHeightmapTerrainProviderOptions {
+        width: number;
+        height: number;
+        callback: CustomHeightmapCallback;
+      }
+
+      const customHeightmapProvider = new Cesium.CustomHeightmapTerrainProvider({
+        width: customHeightmapWidth,
+        height: customHeightmapHeight,
+        callback: function (x: number, y: number, level: number): Float32Array {
+          const width = customHeightmapWidth;
+          const height = customHeightmapHeight;
+          const buffer = new Float32Array(width * height);
+
+          for (let yy = 0; yy < height; yy++) {
+            for (let xx = 0; xx < width; xx++) {
+              /* eslint-disable-next-line no-unused-vars */
+              const u = (x + xx / (width - 1)) / Math.pow(2, level);
+              const v = (y + yy / (height - 1)) / Math.pow(2, level);
+
+              const heightValue = 4000 * (Math.sin(8000 * v) * 0.5 + 0.5);
+
+              const index = yy * width + xx;
+              buffer[index] = heightValue;
+            }
+          }
+
+          return buffer;
+        },
+      } as CustomHeightmapTerrainProviderOptions);
+
 
       viewer.scene.verticalExaggeration = verticalExaggeration
       viewer.scene.verticalExaggerationRelativeHeight = relativeHeight
 
       viewer.scene.globe.enableLighting = true
 
-      viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
-
       try {
-        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207)
-        viewer.scene.primitives.add(tileset)
-        console.log("[v0] Added Google Photorealistic 3D Tiles")
-      } catch (tilesetError) {
-        console.log("[v0] 3D Tiles not available, using standard terrain:", tilesetError)
-      }
+      const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
+      viewer.scene.primitives.add(tileset);
+    } catch (error) {
+      console.log(error);
+    }
+
 
       viewerInstanceRef.current = viewer
       setIsLoading(false)
@@ -137,7 +175,7 @@ export default function CesiumMap() {
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
         description: `
-          <div style="font-family: sans-serif; color: #333; padding: 10px;">
+          <div style="font-family: sans-serif; color: #33333300; padding: 10px;">
             <h3 style="margin-bottom: 5px; color: ${marker.color};">${marker.title}</h3>
             <p><strong>Risk Level:</strong> ${marker.riskLevel.toUpperCase()}</p>
             <p><strong>Confidence:</strong> ${(marker.confidence * 100).toFixed(1)}%</p>
@@ -156,6 +194,18 @@ export default function CesiumMap() {
       viewer.zoomTo(viewer.entities)
     }
   }, [mapMarkers])
+
+  useEffect(() => {
+    if (!viewerRef.current || !viewerInstanceRef.current) return
+
+    const observer = new ResizeObserver(() => {
+      viewerInstanceRef.current?.resize()
+      viewerInstanceRef.current?.scene?.requestRender()
+    })
+
+    observer.observe(viewerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   return (
     <>
