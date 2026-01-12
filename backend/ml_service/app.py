@@ -15,6 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ml_service.models.yolo_detector import YOLODetector
 from ml_service.utils.image_processor import ImageProcessor
 from ml_service.utils.risk_scorer import RiskScorer
+from ml_service.utils.clinical_data_loader import ClinicalDataLoader
+from ml_service.utils.sormas_parser import SORMASParser
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,18 +25,22 @@ logger = logging.getLogger(__name__)
 # Global model instance
 yolo_detector: Optional[YOLODetector] = None
 risk_scorer: Optional[RiskScorer] = None
+clinical_loader: Optional[ClinicalDataLoader] = None
+sormas_parser: Optional[SORMASParser] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager for app startup/shutdown"""
-    global yolo_detector, risk_scorer
+    global yolo_detector, risk_scorer, clinical_loader, sormas_parser
     
     logger.info("[v0] Loading YOLO model and risk scorer on startup...")
     try:
         yolo_detector = YOLODetector()
         risk_scorer = RiskScorer()
-        logger.info("[v0] Models loaded successfully")
+        clinical_loader = ClinicalDataLoader()
+        sormas_parser = SORMASParser()
+        logger.info("[v0] Models and data loaded successfully")
     except Exception as e:
         logger.error(f"[v0] Failed to load models: {e}")
         raise
@@ -124,11 +130,12 @@ async def detect(file: UploadFile = File(...)):
             "detections": detections,
             "risk_score": risk_score,
             "processing_time_ms": 0,  # Will be calculated in detector
-            "model_version": "yolov8n",
+            "model_version": yolo_detector.model_version,  # Use actual model version
             "metadata": {
                 "filename": file.filename,
                 "detection_count": len(detections),
-                "high_confidence": sum(1 for d in detections if d.get("confidence", 0) > 0.7)
+                "high_confidence": sum(1 for d in detections if d.get("confidence", 0) > 0.7),
+                "species_detected": list(set(d.get("class_name", "unknown") for d in detections))
             }
         }
         
@@ -208,10 +215,77 @@ async def root():
             "detect": "/detect (POST)",
             "batch_detect": "/detect/batch (POST)",
             "model_info": "/model/info",
-            "docs": "/docs"
+            "docs": "/docs",
+            "clinical_cases_region": "/clinical/cases/region/{region}",
+            "clinical_cases_recent": "/clinical/cases/recent",
+            "clinical_statistics": "/clinical/statistics",
+            "clinical_correlate": "/clinical/correlate",
+            "sormas_fields": "/sormas/fields",
+            "sormas_field_definition": "/sormas/field/{field_name}"
         }
     }
 
+# New clinical data endpoints
+@app.get("/clinical/cases/region/{region}")
+async def get_cases_by_region(region: str):
+    """Get Lassa Fever cases for a specific region"""
+    if not clinical_loader:
+        raise HTTPException(status_code=503, detail="Clinical data not loaded")
+    
+    cases = clinical_loader.get_cases_by_region(region)
+    return {"region": region, "case_count": len(cases), "cases": cases}
+
+
+@app.get("/clinical/cases/recent")
+async def get_recent_cases(limit: int = 10):
+    """Get most recent Lassa Fever cases"""
+    if not clinical_loader:
+        raise HTTPException(status_code=503, detail="Clinical data not loaded")
+    
+    cases = clinical_loader.get_recent_cases(limit)
+    return {"count": len(cases), "cases": cases}
+
+
+@app.get("/clinical/statistics")
+async def get_clinical_statistics():
+    """Get overall clinical statistics"""
+    if not clinical_loader:
+        raise HTTPException(status_code=503, detail="Clinical data not loaded")
+    
+    stats = clinical_loader.get_case_statistics()
+    return stats
+
+
+@app.post("/clinical/correlate")
+async def correlate_detection(latitude: float, longitude: float, radius_km: float = 50):
+    """Correlate rodent detection with nearby Lassa cases"""
+    if not clinical_loader:
+        raise HTTPException(status_code=503, detail="Clinical data not loaded")
+    
+    correlation = clinical_loader.correlate_detection_with_cases(latitude, longitude, radius_km)
+    return correlation
+
+
+@app.get("/sormas/fields")
+async def get_sormas_fields():
+    """Get all SORMAS data dictionary fields"""
+    if not sormas_parser:
+        raise HTTPException(status_code=503, detail="SORMAS parser not loaded")
+    
+    fields = sormas_parser.get_all_fields()
+    return {"field_count": len(fields), "fields": fields}
+
+
+@app.get("/sormas/field/{field_name}")
+async def get_sormas_field_definition(field_name: str):
+    """Get definition for a specific SORMAS field"""
+    if not sormas_parser:
+        raise HTTPException(status_code=503, detail="SORMAS parser not loaded")
+    
+    definition = sormas_parser.get_field_definition(field_name)
+    if definition:
+        return definition
+    raise HTTPException(status_code=404, detail="Field not found")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 from typing import List, Dict, Any
 import numpy as np
 from ultralytics import YOLO
@@ -22,12 +23,27 @@ class YOLODetector:
         logger.info(f"[v0] Initializing YOLODetector with {model_name} on {device}")
         self.model_name = model_name
         self.device = device
+        self.model_version = "yolov8s-trained"  # Track model version
         
         try:
-            # Load YOLOv8 model (auto-downloads if not present)
-            self.model = YOLO(model_name)
+            trained_model_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+                "mntrk-tensorflow2-symbolic-v2",
+                "results234",
+                "yolov8s.pt"
+            )
+            
+            if os.path.exists(trained_model_path):
+                logger.info(f"[v0] Loading trained model from {trained_model_path}")
+                self.model = YOLO(trained_model_path)
+                self.model_version = "yolov8s-trained-mastomys"
+            else:
+                logger.warning(f"[v0] Trained model not found, falling back to {model_name}")
+                self.model = YOLO(model_name)
+                self.model_version = model_name
+            
             self.model.to(device)
-            logger.info(f"[v0] Model loaded successfully: {model_name}")
+            logger.info(f"[v0] Model loaded successfully: {self.model_version}")
         except Exception as e:
             logger.error(f"[v0] Failed to load YOLO model: {e}")
             raise
@@ -100,4 +116,3 @@ class YOLODetector:
         logger.info("[v0] Cleaning up YOLO detector")
         if hasattr(self, 'model'):
             del self.model
-</merged_code

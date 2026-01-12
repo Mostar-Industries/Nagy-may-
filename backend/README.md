@@ -1,5 +1,3 @@
-
-
 # Skyhawk Backend Architecture - Mastomys Detection System
 
 **Skyhawk** is a realtime surveillance system for detecting *Mastomys natalensis* (African rodents) using YOLOv8 computer vision, AI-powered risk scoring, and intelligent agent-based querying. This is the backend orchestration layer for the complete system.

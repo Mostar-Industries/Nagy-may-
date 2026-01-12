@@ -17,7 +17,7 @@ This repository contains all necessary files to train and deploy a YOLOv8 model 
 ### Step 1: Upload Dataset
 Upload a YOLOv8-formatted dataset to **Kaggle Datasets**, including:
 
-```
+\`\`\`
 mastomys-yolo-dataset/
 ├── images/
 │   ├── train/
@@ -26,7 +26,7 @@ mastomys-yolo-dataset/
 │   ├── train/
 │   ├── val/
 └── data.yaml
-```
+\`\`\`
 
 > Your `data.yaml` should point to correct paths for train/val sets and class names.
 

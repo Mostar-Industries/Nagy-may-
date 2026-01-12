@@ -39,6 +39,7 @@ services:
     volumes:
       - ./ml_service:/app
       - ml_models:/app/models
+      - ./mntrk-tensorflow2-symbolic-v2:/app/mntrk-tensorflow2-symbolic-v2:ro
     networks:
       - skyhawk-network
     healthcheck:
