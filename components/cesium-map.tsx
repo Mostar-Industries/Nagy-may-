@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Script from "next/script"
 import { useRealtimeDetections } from "@/hooks/use-realtime-detections"
 import { useDetectionMapData } from "@/hooks/use-detection-map-data"
+import { Slider } from "@/components/ui/slider"
 
 declare global {
   interface Window {
@@ -20,8 +21,20 @@ export default function CesiumMap() {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [cesiumLoaded, setCesiumLoaded] = useState(false)
 
+  const [verticalExaggeration, setVerticalExaggeration] = useState(3.0)
+  const [relativeHeight, setRelativeHeight] = useState(0)
+  const [showControls, setShowControls] = useState(false)
+
   const { detections, isLoading: detLoading, isConnected, error: detError } = useRealtimeDetections()
   const mapMarkers = useDetectionMapData(detections)
+
+  useEffect(() => {
+    if (viewerInstanceRef.current) {
+      const scene = viewerInstanceRef.current.scene
+      scene.verticalExaggeration = verticalExaggeration
+      scene.verticalExaggerationRelativeHeight = relativeHeight
+    }
+  }, [verticalExaggeration, relativeHeight])
 
   const initCesium = async () => {
     if (!window.Cesium || !viewerRef.current) return
@@ -37,7 +50,10 @@ export default function CesiumMap() {
 
       Cesium.Ion.defaultAccessToken = token
 
-      const terrainProvider = await Cesium.createWorldTerrainAsync()
+      const terrainProvider = await Cesium.Terrain.fromWorldTerrain({
+        requestWaterMask: true,
+        requestVertexNormals: true,
+      })
 
       const viewer = new Cesium.Viewer(viewerRef.current, {
         terrainProvider: terrainProvider,
@@ -49,7 +65,23 @@ export default function CesiumMap() {
         homeButton: true,
         infoBox: true,
         navigationHelpButton: true,
+        skyAtmosphere: new Cesium.SkyAtmosphere(),
       })
+
+      viewer.scene.verticalExaggeration = verticalExaggeration
+      viewer.scene.verticalExaggerationRelativeHeight = relativeHeight
+
+      viewer.scene.globe.enableLighting = true
+
+      viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
+
+      try {
+        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207)
+        viewer.scene.primitives.add(tileset)
+        console.log("[v0] Added Google Photorealistic 3D Tiles")
+      } catch (tilesetError) {
+        console.log("[v0] 3D Tiles not available, using standard terrain:", tilesetError)
+      }
 
       viewerInstanceRef.current = viewer
       setIsLoading(false)
@@ -73,9 +105,7 @@ export default function CesiumMap() {
     const Cesium = window.Cesium
     const viewer = viewerInstanceRef.current
 
-    // Add new markers or update existing ones
     mapMarkers.forEach((marker) => {
-      // Skip if already on map
       if (entitiesRef.current.has(marker.id)) {
         return
       }
@@ -122,7 +152,6 @@ export default function CesiumMap() {
       console.log("[v0] Added marker to map:", marker.id)
     })
 
-    // Fit all markers in view if data just loaded
     if (mapMarkers.length > 0 && entitiesRef.current.size <= mapMarkers.length) {
       viewer.zoomTo(viewer.entities)
     }
@@ -170,13 +199,64 @@ export default function CesiumMap() {
 
         <div ref={viewerRef} className="w-full h-full" />
 
-        {/* Status indicator */}
         <div className="absolute bottom-4 left-4 bg-black bg-opacity-60 text-white px-3 py-2 rounded-md text-xs z-20">
           <div>Detections: {mapMarkers.length}</div>
           <div className={`mt-1 ${isConnected ? "text-green-400" : "text-yellow-400"}`}>
             {isConnected ? "● Live" : "○ Connecting..."}
           </div>
         </div>
+
+        <button
+          onClick={() => setShowControls(!showControls)}
+          className="absolute top-4 right-4 bg-black bg-opacity-60 text-white px-3 py-2 rounded-md text-xs z-20 hover:bg-opacity-80 transition-all"
+          title="Toggle terrain controls"
+        >
+          🏔️ Terrain
+        </button>
+
+        {showControls && (
+          <div className="absolute top-16 right-4 bg-black bg-opacity-90 text-white p-4 rounded-md text-xs z-20 w-64 space-y-4">
+            <div>
+              <label className="block mb-2 font-medium">
+                Vertical Exaggeration: {verticalExaggeration.toFixed(1)}x
+              </label>
+              <Slider
+                value={[verticalExaggeration]}
+                onValueChange={(value) => setVerticalExaggeration(value[0])}
+                min={0}
+                max={10}
+                step={0.1}
+                className="w-full"
+              />
+              <p className="text-gray-400 mt-1 text-[10px]">
+                Multiplier for terrain height (1.0 = normal, 3.0 = 3x height)
+              </p>
+            </div>
+
+            <div>
+              <label className="block mb-2 font-medium">Reference Height: {relativeHeight.toFixed(0)}m</label>
+              <Slider
+                value={[relativeHeight]}
+                onValueChange={(value) => setRelativeHeight(value[0])}
+                min={-10000}
+                max={10000}
+                step={100}
+                className="w-full"
+              />
+              <p className="text-gray-400 mt-1 text-[10px]">Height above/below which exaggeration is applied</p>
+            </div>
+
+            <button
+              onClick={() => {
+                setVerticalExaggeration(1.0)
+                setRelativeHeight(0)
+              }}
+              className="w-full px-3 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-xs transition-colors"
+            >
+              Reset to Default
+            </button>
+          </div>
+        )}
       </div>
     </>
   )

@@ -5,10 +5,23 @@ import { requireAuth } from "@/lib/auth"
 import { logAuditEvent } from "@/lib/audit"
 import { z } from "zod" // Added import for z
 import { createClient } from "@/lib/supabase/server"
+import { rateLimit, getRateLimitIdentifier, createRateLimitResponse } from "@/lib/rate-limiter"
 
 const sql = neon(process.env.DATABASE_URL || "")
 
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 100, // 100 requests per minute per IP
+})
+
 export async function GET(request: NextRequest) {
+  const identifier = getRateLimitIdentifier(request)
+  const rateLimitResult = limiter(identifier)
+
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult.resetTime)
+  }
+
   try {
     const user = await requireAuth()
 
@@ -27,14 +40,29 @@ export async function GET(request: NextRequest) {
 
     await logAuditEvent(user.id, "READ", "detection_patterns", null)
 
-    return NextResponse.json(data)
+    const response = NextResponse.json(data)
+    response.headers.set("X-RateLimit-Remaining", rateLimitResult.remaining.toString())
+    response.headers.set("X-RateLimit-Reset", new Date(rateLimitResult.resetTime).toISOString())
+    return response
   } catch (error) {
     console.error("[v0] GET detections error:", error)
     return NextResponse.json({ error: "Failed to fetch detections" }, { status: 500 })
   }
 }
 
+const postLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  maxRequests: 20, // 20 POST requests per minute
+})
+
 export async function POST(request: NextRequest) {
+  const identifier = getRateLimitIdentifier(request)
+  const rateLimitResult = postLimiter(identifier)
+
+  if (!rateLimitResult.success) {
+    return createRateLimitResponse(rateLimitResult.resetTime)
+  }
+
   try {
     const user = await requireAuth()
     const body = await request.json()

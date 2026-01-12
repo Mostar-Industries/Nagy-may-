@@ -2,8 +2,14 @@
 import { useEffect, useRef, useState } from "react"
 import Script from "next/script"
 import Link from "next/link"
+import { useRealtimeDetections } from "@/hooks/use-realtime-detections"
 
-// Hardcoded detection points
+declare global {
+  interface Window {
+    Cesium: any
+  }
+}
+
 const hardcodedDetections = [
   {
     id: "mn-001",
@@ -57,17 +63,26 @@ const hardcodedDetections = [
   },
 ]
 
-declare global {
-  interface Window {
-    Cesium: any
-  }
-}
-
 export default function MapPage() {
   const viewerRef = useRef<HTMLDivElement>(null)
+  const viewerInstanceRef = useRef<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [cesiumLoaded, setCesiumLoaded] = useState(false)
+
+  const [verticalExaggeration, setVerticalExaggeration] = useState(3.0)
+  const [relativeHeight, setRelativeHeight] = useState(0)
+  const [showControls, setShowControls] = useState(false)
+
+  const { detections, isLoading: detectionsLoading } = useRealtimeDetections()
+
+  useEffect(() => {
+    if (viewerInstanceRef.current) {
+      const scene = viewerInstanceRef.current.scene
+      scene.verticalExaggeration = verticalExaggeration
+      scene.verticalExaggerationRelativeHeight = relativeHeight
+    }
+  }, [verticalExaggeration, relativeHeight])
 
   const initCesium = async () => {
     if (!window.Cesium || !viewerRef.current) return
@@ -75,7 +90,6 @@ export default function MapPage() {
     try {
       const Cesium = window.Cesium
 
-      // Fetch token from API route
       const tokenResponse = await fetch("/api/cesium-token")
       if (!tokenResponse.ok) {
         throw new Error("Failed to fetch Cesium token")
@@ -84,10 +98,11 @@ export default function MapPage() {
 
       Cesium.Ion.defaultAccessToken = token
 
-      // Create terrain provider first
-      const terrainProvider = await Cesium.createWorldTerrainAsync()
+      const terrainProvider = await Cesium.Terrain.fromWorldTerrain({
+        requestWaterMask: true,
+        requestVertexNormals: true,
+      })
 
-      // Create viewer with terrain
       const viewer = new Cesium.Viewer(viewerRef.current, {
         terrainProvider: terrainProvider,
         animation: true,
@@ -98,16 +113,42 @@ export default function MapPage() {
         homeButton: true,
         infoBox: true,
         navigationHelpButton: true,
+        skyAtmosphere: new Cesium.SkyAtmosphere(),
       })
 
-      // Add detection points
-      hardcodedDetections.forEach((detection) => {
-        const pointColor = detection.type === "confirmed" ? Cesium.Color.ORANGERED : Cesium.Color.YELLOW
+      viewer.scene.verticalExaggeration = verticalExaggeration
+      viewer.scene.verticalExaggerationRelativeHeight = relativeHeight
+
+      viewer.scene.globe.enableLighting = true
+      viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
+
+      try {
+        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207)
+        viewer.scene.primitives.add(tileset)
+        console.log("[v0] Google Photorealistic 3D Tiles loaded successfully")
+      } catch (tilesetError) {
+        console.log("[v0] 3D Tiles unavailable, continuing with standard terrain:", tilesetError)
+      }
+
+      const detectionsToDisplay = detections.length > 0 ? detections : hardcodedDetections
+
+      detectionsToDisplay.forEach((detection) => {
+        const riskLevel = detection.risk_assessment?.risk_level || "medium"
+        const confidence = detection.risk_assessment?.confidence || 0.5
+
+        let pointColor = Cesium.Color.YELLOW
+        if (riskLevel === "high" || riskLevel === "critical") {
+          pointColor = Cesium.Color.ORANGERED
+        } else if (riskLevel === "low") {
+          pointColor = Cesium.Color.GREEN
+        }
+
+        const type = riskLevel === "high" || riskLevel === "critical" ? "confirmed" : "suspected"
 
         viewer.entities.add({
-          id: detection.id,
-          name: detection.name,
-          position: Cesium.Cartesian3.fromDegrees(detection.longitude, detection.latitude, detection.altitude),
+          id: detection.id?.toString() || `detection-${Math.random()}`,
+          name: `Detection ${detection.id}`,
+          position: Cesium.Cartesian3.fromDegrees(Number(detection.longitude), Number(detection.latitude), 200),
           point: {
             pixelSize: 12,
             color: pointColor,
@@ -115,7 +156,7 @@ export default function MapPage() {
             outlineWidth: 2,
           },
           label: {
-            text: detection.name,
+            text: `Detection ${detection.id}`,
             font: "14pt sans-serif",
             style: Cesium.LabelStyle.FILL_AND_OUTLINE,
             fillColor: Cesium.Color.WHITE,
@@ -130,19 +171,19 @@ export default function MapPage() {
           },
           description: `
             <div style="font-family: sans-serif; color: #333; padding: 10px;">
-              <h3 style="margin-bottom: 5px; color: ${detection.type === "confirmed" ? "#d9534f" : "#f0ad4e"};">${detection.name}</h3>
+              <h3 style="margin-bottom: 5px; color: ${type === "confirmed" ? "#d9534f" : "#f0ad4e"};">Detection ${detection.id}</h3>
               <p><strong>ID:</strong> ${detection.id}</p>
-              <p><strong>Type:</strong> ${detection.type === "confirmed" ? "✓ Confirmed" : "⚠ Suspected"}</p>
-              <p><strong>Confidence:</strong> ${(detection.confidence * 100).toFixed(1)}%</p>
-              <p><strong>Coordinates:</strong> (${detection.latitude.toFixed(4)}°N, ${detection.longitude.toFixed(4)}°E)</p>
-              <p><strong>Altitude:</strong> ${detection.altitude}m</p>
-              <p><strong>Notes:</strong> ${detection.description || "N/A"}</p>
+              <p><strong>Type:</strong> ${type === "confirmed" ? "✓ Confirmed" : "⚠ Suspected"}</p>
+              <p><strong>Confidence:</strong> ${(confidence * 100).toFixed(1)}%</p>
+              <p><strong>Coordinates:</strong> (${Number(detection.latitude).toFixed(4)}°N, ${Number(detection.longitude).toFixed(4)}°E)</p>
+              <p><strong>Source:</strong> ${detection.source || "Unknown"}</p>
+              <p><strong>Timestamp:</strong> ${new Date(detection.detection_timestamp).toLocaleString()}</p>
+              <p><strong>Risk Level:</strong> ${riskLevel.toUpperCase()}</p>
             </div>
           `,
         })
       })
 
-      // Fly to Nigeria
       viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(8.6753, 9.082, 2000000),
         orientation: {
@@ -153,6 +194,7 @@ export default function MapPage() {
         duration: 2.0,
       })
 
+      viewerInstanceRef.current = viewer
       setIsLoading(false)
     } catch (err) {
       console.error("Cesium initialization error:", err)
@@ -162,10 +204,10 @@ export default function MapPage() {
   }
 
   useEffect(() => {
-    if (cesiumLoaded) {
+    if (cesiumLoaded && !detectionsLoading) {
       initCesium()
     }
-  }, [cesiumLoaded])
+  }, [cesiumLoaded, detectionsLoading, detections])
 
   if (error) {
     return (
@@ -219,7 +261,7 @@ export default function MapPage() {
       <main
         style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}
       >
-        {isLoading && (
+        {(isLoading || detectionsLoading) && (
           <div
             style={{
               position: "absolute",
@@ -274,11 +316,14 @@ export default function MapPage() {
         >
           <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>🐭 Mastomys Tracker</h3>
           <p style={{ margin: "5px 0", fontSize: "14px" }}>
-            <strong>Detections:</strong> {hardcodedDetections.length}
+            <strong>Detections:</strong> {detections.length > 0 ? detections.length : hardcodedDetections.length}
           </p>
           <p style={{ margin: "5px 0", fontSize: "14px" }}>
             <strong>Focus:</strong> Nigeria (Lassa Endemic)
           </p>
+          {detections.length > 0 && (
+            <p style={{ margin: "5px 0", fontSize: "12px", color: "#4ade80" }}>✓ Live data active</p>
+          )}
         </div>
 
         <div
@@ -355,6 +400,95 @@ export default function MapPage() {
         </Link>
 
         <div ref={viewerRef} style={{ width: "100%", height: "100%" }} />
+
+        <div
+          style={{
+            position: "absolute",
+            top: "80px",
+            right: "10px",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            color: "white",
+            padding: "15px",
+            borderRadius: "8px",
+            zIndex: 1000,
+            width: "250px",
+          }}
+        >
+          <button
+            onClick={() => setShowControls(!showControls)}
+            style={{
+              width: "100%",
+              padding: "8px",
+              backgroundColor: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: "4px",
+              color: "white",
+              cursor: "pointer",
+              fontSize: "12px",
+              marginBottom: showControls ? "15px" : "0",
+            }}
+          >
+            🏔️ {showControls ? "Hide" : "Show"} Terrain Controls
+          </button>
+
+          {showControls && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "12px", fontWeight: "500" }}>
+                  Vertical Exaggeration: {verticalExaggeration.toFixed(1)}x
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={verticalExaggeration}
+                  onChange={(e) => setVerticalExaggeration(Number.parseFloat(e.target.value))}
+                  style={{ width: "100%", cursor: "pointer" }}
+                />
+                <p style={{ fontSize: "10px", color: "#999", marginTop: "4px" }}>
+                  Multiplier for terrain height (1.0 = normal)
+                </p>
+              </div>
+
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "12px", fontWeight: "500" }}>
+                  Reference Height: {relativeHeight.toFixed(0)}m
+                </label>
+                <input
+                  type="range"
+                  min="-10000"
+                  max="10000"
+                  step="100"
+                  value={relativeHeight}
+                  onChange={(e) => setRelativeHeight(Number.parseFloat(e.target.value))}
+                  style={{ width: "100%", cursor: "pointer" }}
+                />
+                <p style={{ fontSize: "10px", color: "#999", marginTop: "4px" }}>
+                  Height reference point for exaggeration
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setVerticalExaggeration(1.0)
+                  setRelativeHeight(0)
+                }}
+                style={{
+                  padding: "8px",
+                  backgroundColor: "#4a9eff",
+                  border: "none",
+                  borderRadius: "4px",
+                  color: "white",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                Reset to Default
+              </button>
+            </div>
+          )}
+        </div>
       </main>
     </>
   )
