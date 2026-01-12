@@ -1,10 +1,12 @@
+
+
 # Skyhawk Backend Architecture - Mastomys Detection System
 
 **Skyhawk** is a realtime surveillance system for detecting *Mastomys natalensis* (African rodents) using YOLOv8 computer vision, AI-powered risk scoring, and intelligent agent-based querying. This is the backend orchestration layer for the complete system.
 
 ## System Overview
 
-\`\`\`
+
 ┌──────────────────────────────────────────────────────────────────┐
 │                   Skyhawk Backend System                         │
 ├──────────────────────────────────────────────────────────────────┤
@@ -36,7 +38,7 @@
 │  └─ detection_patterns table                                    │
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
-\`\`\`
+
 
 ## Services Directory
 
@@ -58,52 +60,52 @@ The backend is organized into three main services plus ML infrastructure:
 ### Setup
 
 1. **Clone and navigate to backend**:
-\`\`\`bash
+bash
 cd backend
-\`\`\`
+
 
 2. **Create `.env` file** (from example):
-\`\`\`bash
+bash
 cp .env.example .env
 # Edit .env with your database credentials if needed
-\`\`\`
+
 
 3. **Start all services**:
-\`\`\`bash
+bash
 docker-compose up -d
-\`\`\`
+
 
 4. **Verify services are running**:
-\`\`\`bash
+bash
 docker-compose ps
-\`\`\`
+
 
 Expected output:
-\`\`\`
+
 NAME                      STATUS
 skyhawk-postgres          Up (healthy)
 skyhawk-ml-service        Up (healthy)
 skyhawk-api-service       Up (healthy)
 skyhawk-agent-service     Up (healthy)
-\`\`\`
+
 
 5. **Test services**:
-\`\`\`bash
+bash
 # Run bash tests
 bash scripts/test-endpoints.sh
 
 # Run Python integration tests
 python scripts/test-integration.py
-\`\`\`
+
 
 ### Stopping Services
-\`\`\`bash
+bash
 # Stop all services
 docker-compose down
 
 # Stop and remove volumes (database data)
 docker-compose down -v
-\`\`\`
+
 
 ## Individual Service Documentation
 
@@ -120,25 +122,25 @@ docker-compose down -v
 - `ml_service/utils/risk_scorer.py` - Risk calculation
 
 **Endpoints**:
-\`\`\`
+
 GET  /health               - Service health check
 POST /detect               - Single image inference
 POST /detect/batch         - Batch image processing
 GET  /model/info           - Model metadata
 GET  /docs                 - Interactive documentation
-\`\`\`
+
 
 **Example Usage**:
-\`\`\`bash
+bash
 curl -X POST -F "image=@rodent.jpg" http://localhost:5001/detect
-\`\`\`
+
 
 **Running Locally**:
-\`\`\`bash
+bash
 cd ml_service
 pip install -r requirements.txt
 python -m app
-\`\`\`
+
 
 ### 2. API Service (Port 5002)
 
@@ -152,29 +154,29 @@ python -m app
 - `MNTRK_API/swagger_server/swagger/swagger.yaml` - API specification
 
 **Endpoints**:
-\`\`\`
+
 GET  /detections            - List detections (with filters)
 POST /detections            - Create detection
 GET  /detections/{id}       - Get detection by ID
 POST /predict               - Upload image + get YOLO + risk
 GET  /ui/                   - Swagger documentation
-\`\`\`
+
 
 **Example Usage**:
-\`\`\`bash
+bash
 # Upload image and get detection
 curl -X POST -F "image=@rodent.jpg" http://localhost:5002/predict
 
 # Fetch recent detections
 curl "http://localhost:5002/detections?limit=10"
-\`\`\`
+
 
 **Running Locally**:
-\`\`\`bash
+bash
 cd MNTRK_API
 pip install -r requirements.txt
 python -m swagger_server
-\`\`\`
+
 
 ### 3. Agent Service (Port 5003)
 
@@ -188,17 +190,17 @@ python -m swagger_server
 - `MNTRK_Agent_API/swagger_server/controllers/` - Agent logic
 
 **Endpoints**:
-\`\`\`
+
 GET  /agent/explain         - Explain detection risk
 GET  /agent/alerts          - Recent alerts with AI summary
 POST /agent/query           - Natural language query
 POST /video/analyze         - Analyze video stream
 POST /risk/analyze          - Deep risk analysis
 GET  /ui/                   - Swagger documentation
-\`\`\`
+
 
 **Example Queries**:
-\`\`\`bash
+bash
 # Get explanation for a detection
 curl "http://localhost:5003/agent/explain?detection_id=42"
 
@@ -206,14 +208,14 @@ curl "http://localhost:5003/agent/explain?detection_id=42"
 curl -X POST -H "Content-Type: application/json" \
   -d '{"query": "What rodent hotspots in Ondo State?"}' \
   http://localhost:5003/agent/query
-\`\`\`
+
 
 **Running Locally**:
-\`\`\`bash
+bash
 cd MNTRK_Agent_API
 pip install -r requirements.txt
 python -m swagger_server
-\`\`\`
+
 
 ## Frontend Integration
 
@@ -221,7 +223,7 @@ python -m swagger_server
 
 **File**: `lib/api-integration.ts` in the main Next.js app
 
-\`\`\`typescript
+typescript
 // Call ML Service directly
 export async function predictWithYOLO(image: File) {
   const formData = new FormData();
@@ -258,7 +260,7 @@ export async function askAgent(query: string) {
   
   return response.json();
 }
-\`\`\`
+
 
 ## Configuration
 
@@ -266,7 +268,7 @@ export async function askAgent(query: string) {
 
 Key variables in `.env`:
 
-\`\`\`bash
+bash
 # Database
 DATABASE_URL=postgresql://mastomys:password@localhost:5432/mastomys_tracker
 
@@ -282,14 +284,14 @@ GEMINI_API_KEY=your-key-here
 OPENWEATHER_API_KEY=
 SORMAS_API_KEY=
 CDC_API_KEY=
-\`\`\`
+
 
 See `.env.example` for all available options.
 
 ## Monitoring & Debugging
 
 ### View Logs
-\`\`\`bash
+bash
 # All services
 docker-compose logs -f
 
@@ -297,16 +299,16 @@ docker-compose logs -f
 docker-compose logs -f ml-service
 docker-compose logs -f api-service
 docker-compose logs -f agent-service
-\`\`\`
+
 
 ### Database Access
-\`\`\`bash
+bash
 # Connect to PostgreSQL
 docker exec -it skyhawk-postgres psql -U mastomys -d mastomys_tracker
 
 # Query detections
 SELECT id, latitude, longitude, created_at FROM detection_patterns LIMIT 10;
-\`\`\`
+
 
 ### API Documentation
 - **ML Service**: http://localhost:5001/docs
@@ -316,65 +318,65 @@ SELECT id, latitude, longitude, created_at FROM detection_patterns LIMIT 10;
 ## Deployment
 
 ### Docker Build
-\`\`\`bash
+bash
 docker build -t skyhawk-ml-service:0.2.1 ./ml_service/
 docker build -t skyhawk-api-service:0.2.1 ./MNTRK_API/
 docker build -t skyhawk-agent-service:0.2.1 ./MNTRK_Agent_API/
-\`\`\`
+
 
 ### Cloud Deployment (Google Cloud Run)
 
 1. **Build and push images**:
-\`\`\`bash
+bash
 gcloud builds submit --tag gcr.io/PROJECT/skyhawk-ml-service ./ml_service/
 gcloud builds submit --tag gcr.io/PROJECT/skyhawk-api-service ./MNTRK_API/
-\`\`\`
+
 
 2. **Deploy to Cloud Run**:
-\`\`\`bash
+bash
 gcloud run deploy skyhawk-ml-service \
   --image gcr.io/PROJECT/skyhawk-ml-service \
   --memory 2Gi --timeout 120s
-\`\`\`
+
 
 ## Development Workflow
 
 ### Running Individual Services
 
 **ML Service Only**:
-\`\`\`bash
+bash
 cd ml_service
 pip install -r requirements.txt
 python -m app
-\`\`\`
+
 
 **API Service Only**:
-\`\`\`bash
+bash
 cd MNTRK_API
 pip install -r requirements.txt
 python -m swagger_server
-\`\`\`
+
 
 **Agent Service Only**:
-\`\`\`bash
+bash
 cd MNTRK_Agent_API
 pip install -r requirements.txt
 python -m swagger_server
-\`\`\`
+
 
 ### Adding Dependencies
 
-\`\`\`bash
+bash
 cd SERVICE_NAME
 pip install package_name
 pip freeze > requirements.txt
-\`\`\`
+
 
 Then rebuild Docker image:
-\`\`\`bash
+bash
 docker-compose build SERVICE_NAME
 docker-compose restart SERVICE_NAME
-\`\`\`
+
 
 ## Performance Benchmarks
 
@@ -389,23 +391,23 @@ docker-compose restart SERVICE_NAME
 ## Troubleshooting
 
 ### Service won't start
-\`\`\`bash
+bash
 # Check logs
 docker-compose logs SERVICE_NAME
 
 # Rebuild
 docker-compose build --no-cache SERVICE_NAME
 docker-compose restart SERVICE_NAME
-\`\`\`
+
 
 ### Database connection error
-\`\`\`bash
+bash
 # Check PostgreSQL is running
 docker-compose ps postgres
 
 # Check credentials
 cat .env | grep POSTGRES
-\`\`\`
+
 
 ### Out of memory
 Increase Docker memory allocation in Docker Desktop preferences or adjust resource limits in docker-compose.yml.
