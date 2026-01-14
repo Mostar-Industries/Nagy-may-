@@ -10,59 +10,6 @@ declare global {
   }
 }
 
-const hardcodedDetections = [
-  {
-    id: "mn-001",
-    name: "Mastomys Edo State",
-    latitude: 6.335,
-    longitude: 5.6037,
-    altitude: 200,
-    description: "Detection point in Edo State - Lassa fever endemic region.",
-    confidence: 0.92,
-    type: "confirmed",
-  },
-  {
-    id: "mn-002",
-    name: "Mastomys Bauchi State",
-    latitude: 10.3158,
-    longitude: 9.8442,
-    altitude: 609,
-    description: "Detection point in Bauchi State - Northern Nigeria surveillance.",
-    confidence: 0.88,
-    type: "confirmed",
-  },
-  {
-    id: "mn-003",
-    name: "Mastomys Ondo State",
-    latitude: 7.2526,
-    longitude: 5.1931,
-    altitude: 164,
-    description: "Detection point in Ondo State - Southwest Nigeria monitoring.",
-    confidence: 0.85,
-    type: "suspected",
-  },
-  {
-    id: "mn-004",
-    name: "Mastomys Plateau State",
-    latitude: 9.2182,
-    longitude: 9.5179,
-    altitude: 1200,
-    description: "Detection point in Plateau State - Central Nigeria highlands.",
-    confidence: 0.9,
-    type: "confirmed",
-  },
-  {
-    id: "mn-005",
-    name: "Mastomys Taraba State",
-    latitude: 7.8706,
-    longitude: 10.0753,
-    altitude: 318,
-    description: "Detection point in Taraba State - Eastern Nigeria border region.",
-    confidence: 0.87,
-    type: "confirmed",
-  },
-]
-
 export default function MapPage() {
   const viewerRef = useRef<HTMLDivElement>(null)
   const viewerInstanceRef = useRef<any>(null)
@@ -73,6 +20,10 @@ export default function MapPage() {
   const [verticalExaggeration, setVerticalExaggeration] = useState(1.0)
   const [relativeHeight, setRelativeHeight] = useState(0)
   const [showControls, setShowControls] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const { detections, isLoading: detectionsLoading } = useRealtimeDetections()
 
@@ -109,11 +60,9 @@ export default function MapPage() {
         timeline: true,
         fullscreenButton: true,
         baseLayerPicker: true,
-        geocoder: true,
-        homeButton: true,
-        infoBox: true,
         navigationHelpButton: true,
         skyAtmosphere: new Cesium.SkyAtmosphere(),
+        geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
       })
 
       viewer.scene.verticalExaggeration = verticalExaggeration
@@ -122,17 +71,20 @@ export default function MapPage() {
       viewer.scene.globe.enableLighting = true
       viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
 
+      // Add Photorealistic 3D Tiles
       try {
-        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207)
-        viewer.scene.primitives.add(tileset)
-        console.log("[v0] Google Photorealistic 3D Tiles loaded successfully")
-      } catch (tilesetError) {
-        console.log("[v0] 3D Tiles unavailable, continuing with standard terrain:", tilesetError)
+        const googleTileset = await Cesium.createGooglePhotorealistic3DTileset({
+          // Only the Google Geocoder can be used with Google Photorealistic 3D Tiles.  Set the `geocode` property of the viewer constructor options to IonGeocodeProviderType.GOOGLE.
+          onlyUsingWithGoogleGeocoder: true,
+        });
+        viewer.scene.primitives.add(googleTileset);
+      } catch (error) {
+        console.log(`Error loading Photorealistic 3D Tiles tileset.
+        ${error}`);
       }
 
-      const detectionsToDisplay = detections.length > 0 ? detections : hardcodedDetections
-
-      detectionsToDisplay.forEach((detection) => {
+      if (detections.length) {
+        detections.forEach((detection) => {
         const riskLevel = detection.risk_assessment?.risk_level || "medium"
         const confidence = detection.risk_assessment?.confidence || 0.5
 
@@ -182,7 +134,8 @@ export default function MapPage() {
             </div>
           `,
         })
-      })
+        })
+      }
 
       viewer.camera.flyTo({
         destination: Cesium.Cartesian3.fromDegrees(8.6753, 9.082, 2000000),
@@ -200,6 +153,59 @@ export default function MapPage() {
       console.error("Cesium initialization error:", err)
       setError(err instanceof Error ? err.message : String(err))
       setIsLoading(false)
+    }
+  }
+
+  const handleDetect = async () => {
+    if (!selectedFile) {
+      setSubmitError("Select an image to detect.")
+      return
+    }
+
+    if (!navigator.geolocation) {
+      setSubmitError("Geolocation is not available in this browser.")
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError(null)
+    setSubmitStatus(null)
+
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+        })
+      })
+
+      const formData = new FormData()
+      formData.append("file", selectedFile, selectedFile.name)
+      formData.append("latitude", position.coords.latitude.toString())
+      formData.append("longitude", position.coords.longitude.toString())
+
+      const response = await fetch("/api/detect", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const message = await response.text()
+        throw new Error(message || "Detection failed")
+      }
+
+      const data = await response.json()
+      const detectionCount = data?.metadata?.detection_count ?? data?.detections?.length ?? 0
+      const stored = data?.stored === true
+      setSubmitStatus(
+        stored
+          ? `Detection sent. ${detectionCount} detections.`
+          : `Detection completed (${detectionCount}). Not stored in database.`,
+      )
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Detection failed")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -274,42 +280,9 @@ export default function MapPage() {
         style={{ width: "100vw", height: "100vh", margin: 0, padding: 0, overflow: "hidden", position: "relative" }}
       >
         {(isLoading || detectionsLoading) && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              color: "white",
-              backgroundColor: "rgba(0,0,0,0.8)",
-              padding: "20px 40px",
-              borderRadius: "8px",
-              zIndex: 1000,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              gap: "15px",
-            }}
-          >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "4px solid rgba(255,255,255,0.3)",
-                borderTop: "4px solid white",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
+          <div className="loadingOverlay">
+            <div className="spinner" />
             <span>Loading Mastomys Tracker Map...</span>
-            <style>
-              {`
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              `}
-            </style>
           </div>
         )}
 
@@ -328,14 +301,47 @@ export default function MapPage() {
         >
           <h3 style={{ margin: "0 0 10px 0", fontSize: "16px" }}>🐭 Mastomys Tracker</h3>
           <p style={{ margin: "5px 0", fontSize: "14px" }}>
-            <strong>Detections:</strong> {detections.length > 0 ? detections.length : hardcodedDetections.length}
+            <strong>Detections:</strong> {detections.length}
           </p>
           <p style={{ margin: "5px 0", fontSize: "14px" }}>
             <strong>Focus:</strong> Nigeria (Lassa Endemic)
           </p>
-          {detections.length > 0 && (
-            <p style={{ margin: "5px 0", fontSize: "12px", color: "#4ade80" }}>✓ Live data active</p>
+          {detections.length > 0 ? (
+            <p style={{ margin: "5px 0", fontSize: "12px", color: "#4ade80" }}>Live data active</p>
+          ) : (
+            <p style={{ margin: "5px 0", fontSize: "12px", color: "#f0ad4e" }}>No detections yet</p>
           )}
+          <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={(event) => {
+                const file = event.target.files?.[0] || null
+                setSelectedFile(file)
+                setSubmitStatus(null)
+                setSubmitError(null)
+              }}
+              style={{ fontSize: "12px" }}
+            />
+            <button
+              onClick={handleDetect}
+              disabled={isSubmitting || !selectedFile}
+              style={{
+                padding: "8px",
+                backgroundColor: isSubmitting || !selectedFile ? "#555" : "#4a9eff",
+                border: "none",
+                borderRadius: "4px",
+                color: "white",
+                cursor: isSubmitting || !selectedFile ? "not-allowed" : "pointer",
+                fontSize: "12px",
+              }}
+            >
+              {isSubmitting ? "Detecting..." : "Run Detection"}
+            </button>
+            {submitError && <p style={{ margin: 0, fontSize: "12px", color: "#ff6b6b" }}>{submitError}</p>}
+            {submitStatus && <p style={{ margin: 0, fontSize: "12px", color: "#4ade80" }}>{submitStatus}</p>}
+          </div>
         </div>
 
         <div
@@ -514,3 +520,8 @@ export default function MapPage() {
     </>
   )
 }
+
+
+
+
+

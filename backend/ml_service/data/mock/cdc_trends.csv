@@ -1,9 +1,0 @@
-week,year,disease,cases,deaths,case_fatality_rate,notes
-1,2024,Lassa Fever,8,1,0.125,Nigeria outbreak
-2,2024,Lassa Fever,12,2,0.167,Spreading to neighboring states
-3,2024,Lassa Fever,18,3,0.167,Continued spread
-4,2024,Lassa Fever,25,5,0.2,Peak week
-5,2024,Lassa Fever,22,4,0.182,Declining trend
-1,2024,Ebola Virus,0,0,0.0,No cases reported
-2,2024,Ebola Virus,0,0,0.0,No cases reported
-1,2024,Monkeypox,1,0,0.0,Sporadic case

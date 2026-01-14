@@ -1,34 +1,19 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 async function callAgentAPI(payload: any) {
-  // In production, call the actual MNTRK_Agent_API service
-  // For now, use mock responses
-  const { query, events, action } = payload
+  const baseUrl = process.env.AGENT_SERVICE_URL || "http://localhost:5003"
+  const response = await fetch(`${baseUrl}/agent/query`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
 
-  if (action === "summarize" && events) {
-    // Generate a summary of detection events
-    const eventCount = events.length
-    const species = events[0]?.species || "Mastomys natalensis"
-    const avgConfidence = (events.reduce((sum: number, e: any) => sum + (e.confidence || 0), 0) / eventCount).toFixed(2)
-    const riskLevels = events.map((e: any) => e.risk_level)
-    const criticalCount = riskLevels.filter((r: string) => r === "CRITICAL").length
-    const highCount = riskLevels.filter((r: string) => r === "HIGH").length
-
-    return {
-      response: `Event Summary: Detected ${eventCount} ${species} specimens across multiple locations. Average model confidence: ${avgConfidence}. Risk breakdown: ${criticalCount} CRITICAL, ${highCount} HIGH, ${eventCount - criticalCount - highCount} MEDIUM or lower. Recommend increased surveillance in high-risk zones.`,
-    }
+  if (!response.ok) {
+    const message = await response.text()
+    throw new Error(message || "Agent service error")
   }
 
-  if (query) {
-    // Handle general query about detections
-    return {
-      response: `Based on the detection data: The system has identified ${events?.length || 0} recent Mastomys detections. Species distribution shows primarily M. natalensis with good detection confidence. Environmental factors suggest suitable habitat conditions. Continued monitoring recommended.`,
-    }
-  }
-
-  return {
-    response: "Unable to process request. Please provide query or events for analysis.",
-  }
+  return response.json()
 }
 
 export async function POST(request: NextRequest) {

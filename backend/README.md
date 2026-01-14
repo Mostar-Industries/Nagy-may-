@@ -4,7 +4,6 @@
 
 ## System Overview
 
-
 ┌──────────────────────────────────────────────────────────────────┐
 │                   Skyhawk Backend System                         │
 ├──────────────────────────────────────────────────────────────────┤
@@ -37,7 +36,6 @@
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
 
-
 ## Services Directory
 
 The backend is organized into three main services plus ML infrastructure:
@@ -52,6 +50,7 @@ The backend is organized into three main services plus ML infrastructure:
 ## Quick Start - Using Docker Compose
 
 ### Prerequisites
+
 - Docker & Docker Compose installed
 - 4GB RAM minimum
 
@@ -61,22 +60,19 @@ The backend is organized into three main services plus ML infrastructure:
 bash
 cd backend
 
-
 2. **Create `.env` file** (from example):
 bash
 cp .env.example .env
+
 # Edit .env with your database credentials if needed
 
-
-3. **Start all services**:
+1. **Start all services**:
 bash
 docker-compose up -d
 
-
-4. **Verify services are running**:
+2. **Verify services are running**:
 bash
 docker-compose ps
-
 
 Expected output:
 
@@ -86,24 +82,28 @@ skyhawk-ml-service        Up (healthy)
 skyhawk-api-service       Up (healthy)
 skyhawk-agent-service     Up (healthy)
 
-
-5. **Test services**:
+1. **Test services**:
 bash
+
 # Run bash tests
+
 bash scripts/test-endpoints.sh
 
 # Run Python integration tests
+
 python scripts/test-integration.py
 
-
 ### Stopping Services
+
 bash
+
 # Stop all services
+
 docker-compose down
 
 # Stop and remove volumes (database data)
-docker-compose down -v
 
+docker-compose down -v
 
 ## Individual Service Documentation
 
@@ -114,6 +114,7 @@ docker-compose down -v
 **Tech Stack**: FastAPI, YOLOv8, NumPy, OpenCV, Python 3.10+
 
 **Key Files**:
+
 - `ml_service/app.py` - FastAPI application
 - `ml_service/models/yolo_detector.py` - YOLO inference
 - `ml_service/utils/image_processor.py` - Image preprocessing
@@ -127,18 +128,15 @@ POST /detect/batch         - Batch image processing
 GET  /model/info           - Model metadata
 GET  /docs                 - Interactive documentation
 
-
 **Example Usage**:
 bash
-curl -X POST -F "image=@rodent.jpg" http://localhost:5001/detect
-
+curl -X POST -F "image=@rodent.jpg" <http://localhost:5001/detect>
 
 **Running Locally**:
 bash
 cd ml_service
 pip install -r requirements.txt
 python -m app
-
 
 ### 2. API Service (Port 5002)
 
@@ -147,6 +145,7 @@ python -m app
 **Tech Stack**: Connexion, Flask, SQLAlchemy, PostgreSQL
 
 **Key Files**:
+
 - `MNTRK_API/swagger_server/__main__.py` - Application entry point
 - `MNTRK_API/swagger_server/controllers/default_controller.py` - Handlers
 - `MNTRK_API/swagger_server/swagger/swagger.yaml` - API specification
@@ -159,22 +158,22 @@ GET  /detections/{id}       - Get detection by ID
 POST /predict               - Upload image + get YOLO + risk
 GET  /ui/                   - Swagger documentation
 
-
 **Example Usage**:
 bash
+
 # Upload image and get detection
-curl -X POST -F "image=@rodent.jpg" http://localhost:5002/predict
+
+curl -X POST -F "image=@rodent.jpg" <http://localhost:5002/predict>
 
 # Fetch recent detections
-curl "http://localhost:5002/detections?limit=10"
 
+curl "<http://localhost:5002/detections?limit=10>"
 
 **Running Locally**:
 bash
 cd MNTRK_API
 pip install -r requirements.txt
 python -m swagger_server
-
 
 ### 3. Agent Service (Port 5003)
 
@@ -183,6 +182,7 @@ python -m swagger_server
 **Tech Stack**: Connexion, Google Gemini API, PostgreSQL integration
 
 **Key Files**:
+
 - `MNTRK_Agent_API/swagger_server/__main__.py` - Agent service entry point
 - `MNTRK_Agent_API/swagger_server/models/` - Request/response schemas
 - `MNTRK_Agent_API/swagger_server/controllers/` - Agent logic
@@ -196,24 +196,24 @@ POST /video/analyze         - Analyze video stream
 POST /risk/analyze          - Deep risk analysis
 GET  /ui/                   - Swagger documentation
 
-
 **Example Queries**:
 bash
+
 # Get explanation for a detection
-curl "http://localhost:5003/agent/explain?detection_id=42"
+
+curl "<http://localhost:5003/agent/explain?detection_id=42>"
 
 # Natural language query
+
 curl -X POST -H "Content-Type: application/json" \
   -d '{"query": "What rodent hotspots in Ondo State?"}' \
-  http://localhost:5003/agent/query
-
+  <http://localhost:5003/agent/query>
 
 **Running Locally**:
 bash
 cd MNTRK_Agent_API
 pip install -r requirements.txt
 python -m swagger_server
-
 
 ## Frontend Integration
 
@@ -227,7 +227,7 @@ export async function predictWithYOLO(image: File) {
   const formData = new FormData();
   formData.append('image', image);
   
-  const response = await fetch('http://localhost:5001/detect', {
+  const response = await fetch('<http://localhost:5001/detect>', {
     method: 'POST',
     body: formData,
   });
@@ -240,7 +240,7 @@ export async function uploadDetection(image: File) {
   const formData = new FormData();
   formData.append('image', image);
   
-  const response = await fetch('http://localhost:5002/predict', {
+  const response = await fetch('<http://localhost:5002/predict>', {
     method: 'POST',
     body: formData,
   });
@@ -250,7 +250,7 @@ export async function uploadDetection(image: File) {
 
 // Query Agent
 export async function askAgent(query: string) {
-  const response = await fetch('http://localhost:5003/agent/query', {
+  const response = await fetch('<http://localhost:5003/agent/query>', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query }),
@@ -259,7 +259,6 @@ export async function askAgent(query: string) {
   return response.json();
 }
 
-
 ## Configuration
 
 ### Environment Variables
@@ -267,60 +266,71 @@ export async function askAgent(query: string) {
 Key variables in `.env`:
 
 bash
+
 # Database
+
 DATABASE_URL=postgresql://mastomys:password@localhost:5432/mastomys_tracker
 
 # ML Service
+
 YOLO_MODEL=yolov8n.pt
 DEVICE=cpu                    # or 'cuda' for GPU
 YOLO_CONFIDENCE_THRESHOLD=0.5
 
 # Agent Service
+
 GEMINI_API_KEY=your-key-here
 
 # Optional External APIs
+
 OPENWEATHER_API_KEY=
 SORMAS_API_KEY=
 CDC_API_KEY=
-
 
 See `.env.example` for all available options.
 
 ## Monitoring & Debugging
 
 ### View Logs
+
 bash
+
 # All services
+
 docker-compose logs -f
 
 # Specific service
+
 docker-compose logs -f ml-service
 docker-compose logs -f api-service
 docker-compose logs -f agent-service
 
-
 ### Database Access
+
 bash
+
 # Connect to PostgreSQL
+
 docker exec -it skyhawk-postgres psql -U mastomys -d mastomys_tracker
 
 # Query detections
+
 SELECT id, latitude, longitude, created_at FROM detection_patterns LIMIT 10;
 
-
 ### API Documentation
-- **ML Service**: http://localhost:5001/docs
-- **API Service**: http://localhost:5002/ui/
-- **Agent Service**: http://localhost:5003/ui/
+
+- **ML Service**: <http://localhost:5001/docs>
+- **API Service**: <http://localhost:5002/ui/>
+- **Agent Service**: <http://localhost:5003/ui/>
 
 ## Deployment
 
 ### Docker Build
+
 bash
 docker build -t skyhawk-ml-service:0.2.1 ./ml_service/
 docker build -t skyhawk-api-service:0.2.1 ./MNTRK_API/
 docker build -t skyhawk-agent-service:0.2.1 ./MNTRK_Agent_API/
-
 
 ### Cloud Deployment (Google Cloud Run)
 
@@ -329,13 +339,11 @@ bash
 gcloud builds submit --tag gcr.io/PROJECT/skyhawk-ml-service ./ml_service/
 gcloud builds submit --tag gcr.io/PROJECT/skyhawk-api-service ./MNTRK_API/
 
-
 2. **Deploy to Cloud Run**:
 bash
 gcloud run deploy skyhawk-ml-service \
   --image gcr.io/PROJECT/skyhawk-ml-service \
   --memory 2Gi --timeout 120s
-
 
 ## Development Workflow
 
@@ -347,20 +355,17 @@ cd ml_service
 pip install -r requirements.txt
 python -m app
 
-
 **API Service Only**:
 bash
 cd MNTRK_API
 pip install -r requirements.txt
 python -m swagger_server
 
-
 **Agent Service Only**:
 bash
 cd MNTRK_Agent_API
 pip install -r requirements.txt
 python -m swagger_server
-
 
 ### Adding Dependencies
 
@@ -369,12 +374,10 @@ cd SERVICE_NAME
 pip install package_name
 pip freeze > requirements.txt
 
-
 Then rebuild Docker image:
 bash
 docker-compose build SERVICE_NAME
 docker-compose restart SERVICE_NAME
-
 
 ## Performance Benchmarks
 
@@ -389,30 +392,38 @@ docker-compose restart SERVICE_NAME
 ## Troubleshooting
 
 ### Service won't start
+
 bash
+
 # Check logs
+
 docker-compose logs SERVICE_NAME
 
 # Rebuild
+
 docker-compose build --no-cache SERVICE_NAME
 docker-compose restart SERVICE_NAME
 
-
 ### Database connection error
+
 bash
+
 # Check PostgreSQL is running
+
 docker-compose ps postgres
 
 # Check credentials
+
 cat .env | grep POSTGRES
 
-
 ### Out of memory
+
 Increase Docker memory allocation in Docker Desktop preferences or adjust resource limits in docker-compose.yml.
 
 ## Templates & Architecture
 
 This system implements 7 design templates:
+
 - **video_library** - RTSP video ingestion and frame analysis
 - **document_scanner** - Individual frame processing
 - **bolt** - Real-time speed and low-latency inference
@@ -433,8 +444,9 @@ See `skyhawk_config.json` for complete template mapping.
 ## Support
 
 For issues:
+
 - Check logs: `docker-compose logs`
-- Review API docs: http://localhost:5002/ui/
+- Review API docs: <http://localhost:5002/ui/>
 - Run integration tests: `python scripts/test-integration.py`
 
 ---

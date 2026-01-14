@@ -1,6 +1,6 @@
 import logging
-from typing import Union
-from io import BytesIO
+import io
+from typing import Tuple, Optional
 from PIL import Image
 import numpy as np
 
@@ -8,63 +8,91 @@ logger = logging.getLogger(__name__)
 
 
 class ImageProcessor:
-    """Image preprocessing utilities"""
+    """Image preprocessing for YOLO inference"""
     
-    SUPPORTED_FORMATS = {'JPEG', 'PNG', 'BMP', 'GIF', 'TIFF'}
-    MAX_SIZE = (2048, 2048)
+    SUPPORTED_FORMATS = {'JPEG', 'PNG', 'WEBP', 'BMP', 'GIF'}
+    MAX_SIZE = 4096  # Max dimension
+    TARGET_SIZE = 640  # YOLO input size
     
-    @staticmethod
-    def load_image_from_bytes(image_bytes: bytes) -> Image.Image:
+    def __init__(self):
+        pass
+    
+    def load_image_from_bytes(self, image_bytes: bytes) -> Image.Image:
         """
-        Load PIL Image from bytes
+        Load and preprocess image from bytes.
         
         Args:
             image_bytes: Raw image bytes
         
         Returns:
-            PIL Image object
+            PIL Image ready for inference
         """
         try:
-            image = Image.open(BytesIO(image_bytes))
+            image = Image.open(io.BytesIO(image_bytes))
             
             # Validate format
-            if image.format not in ImageProcessor.SUPPORTED_FORMATS:
-                logger.warning(f"[v0] Unsupported format: {image.format}, converting to RGB")
+            if image.format and image.format.upper() not in self.SUPPORTED_FORMATS:
+                logger.warning(f"Unusual format: {image.format}")
+            
+            # Convert to RGB if needed
+            if image.mode != 'RGB':
                 image = image.convert('RGB')
             
             # Resize if too large
-            if image.size[0] > ImageProcessor.MAX_SIZE[0] or image.size[1] > ImageProcessor.MAX_SIZE[1]:
-                logger.info(f"[v0] Resizing image from {image.size} to {ImageProcessor.MAX_SIZE}")
-                image.thumbnail(ImageProcessor.MAX_SIZE)
+            if max(image.size) > self.MAX_SIZE:
+                image = self._resize_maintain_aspect(image, self.MAX_SIZE)
+                logger.info(f"Resized large image to {image.size}")
             
-            logger.info(f"[v0] Image loaded: {image.size}, format: {image.format}")
             return image
             
         except Exception as e:
-            logger.error(f"[v0] Failed to load image: {e}")
-            raise
+            logger.error(f"Failed to load image: {e}")
+            raise ValueError(f"Invalid image data: {e}")
     
-    @staticmethod
-    def load_image_from_path(path: str) -> Image.Image:
-        """Load PIL Image from file path"""
-        try:
-            image = Image.open(path)
-            if image.format not in ImageProcessor.SUPPORTED_FORMATS:
-                image = image.convert('RGB')
-            return image
-        except Exception as e:
-            logger.error(f"[v0] Failed to load image from path: {e}")
-            raise
+    def load_image_from_path(self, path: str) -> Image.Image:
+        """Load image from file path"""
+        with open(path, 'rb') as f:
+            return self.load_image_from_bytes(f.read())
     
-    @staticmethod
-    def convert_to_rgb(image: Image.Image) -> Image.Image:
-        """Ensure image is in RGB format"""
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
-        return image
+    def _resize_maintain_aspect(self, image: Image.Image, max_dim: int) -> Image.Image:
+        """Resize image maintaining aspect ratio"""
+        w, h = image.size
+        if w > h:
+            new_w = max_dim
+            new_h = int(h * max_dim / w)
+        else:
+            new_h = max_dim
+            new_w = int(w * max_dim / h)
+        return image.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
-    @staticmethod
-    def resize_image(image: Image.Image, size: tuple) -> Image.Image:
-        """Resize image while maintaining aspect ratio"""
-        image.thumbnail(size, Image.Resampling.LANCZOS)
-        return image
+    def preprocess_for_yolo(self, image: Image.Image) -> np.ndarray:
+        """
+        Preprocess image specifically for YOLO inference.
+        
+        Returns numpy array in YOLO format.
+        """
+        # Resize to YOLO input size
+        resized = image.resize((self.TARGET_SIZE, self.TARGET_SIZE), Image.Resampling.BILINEAR)
+        
+        # Convert to numpy
+        arr = np.array(resized, dtype=np.float32)
+        
+        # Normalize to 0-1
+        arr = arr / 255.0
+        
+        # HWC to CHW format
+        arr = np.transpose(arr, (2, 0, 1))
+        
+        # Add batch dimension
+        arr = np.expand_dims(arr, 0)
+        
+        return arr
+    
+    def get_image_info(self, image: Image.Image) -> dict:
+        """Get image metadata"""
+        return {
+            "width": image.size[0],
+            "height": image.size[1],
+            "mode": image.mode,
+            "format": image.format,
+        }

@@ -69,7 +69,7 @@ export default function CesiumMap() {
         geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
       })
 
-            // Sine wave
+      // Sine wave
       const customHeightmapWidth = 32;
       const customHeightmapHeight = 32;
       interface CustomHeightmapCallback {
@@ -114,14 +114,21 @@ export default function CesiumMap() {
       viewer.scene.globe.enableLighting = true
 
       try {
-      const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
-      viewer.scene.primitives.add(tileset);
-    } catch (error) {
-      console.log(error);
-    }
+        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
+        viewer.scene.primitives.add(tileset);
+      } catch (error) {
+        console.log(error);
+      }
 
 
       viewerInstanceRef.current = viewer
+      // Center on Africa (longitude: 20, latitude: 0, height: 5,000,000)
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(20, 0, 5000000)
+      })
+
+      // Switch to Mercator (2D) view
+      viewer.scene.mode = Cesium.SceneMode.SCENE2D
       setIsLoading(false)
     } catch (err) {
       console.error("Cesium initialization error:", err)

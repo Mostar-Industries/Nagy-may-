@@ -56,28 +56,28 @@ def ai_detections_post(body):  # noqa: E501
         body = DetectionPattern.from_dict(connexion.request.get_json())  # noqa: E501
     
     try:
-        import json
-        from datetime import datetime
-        
-        # Extract detection data
-        detections = body.get('detections', []) if isinstance(body, dict) else []
-        
-        response = {
-            'detection_id': str(datetime.now().timestamp()),
-            'timestamp': datetime.now().isoformat(),
-            'species_detections': [
-                {
-                    'species': d.get('species', 'Mastomys natalensis'),
-                    'confidence': d.get('species_confidence', 0.85),
-                    'bbox': d.get('bbox'),
-                    'processing_time_ms': d.get('processing_time_ms', 0)
-                }
-                for d in detections
-            ],
-            'summary': f"Detected {len(detections)} rodent(s) with average confidence {sum(d.get('species_confidence', 0.85) for d in detections) / len(detections) if detections else 0:.2%}"
-        }
-        
-        return response, 200
+        import os
+        import requests
+
+        image_url = body.get('image_url') if isinstance(body, dict) else getattr(body, 'image_url', None)
+        if not image_url:
+            return {'error': 'image_url is required'}, 400
+
+        yolo_url = os.getenv('YOLO_API_URL', 'http://localhost:5001')
+        image_response = requests.get(image_url, timeout=10)
+        image_response.raise_for_status()
+
+        content_type = image_response.headers.get('Content-Type', 'application/octet-stream')
+        filename = image_url.split('/')[-1] or 'image'
+
+        yolo_response = requests.post(
+            f"{yolo_url}/detect",
+            files={'file': (filename, image_response.content, content_type)},
+            timeout=30,
+        )
+        yolo_response.raise_for_status()
+
+        return yolo_response.json(), 200
     except Exception as e:
         return {'error': str(e)}, 400
 

@@ -1,4 +1,5 @@
 import connexion
+from polars import Object
 import six
 
 from swagger_server.models.adaptive_learning_request import AdaptiveLearningRequest  # noqa: E501
