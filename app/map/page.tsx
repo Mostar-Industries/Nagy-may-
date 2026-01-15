@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react"
 import Script from "next/script"
 import Link from "next/link"
 import { useRealtimeDetections } from "@/hooks/use-realtime-detections"
+import RemostarChatbot from "@/components/remostar-chatbot"
+
 
 declare global {
   interface Window {
@@ -20,10 +22,6 @@ export default function MapPage() {
   const [verticalExaggeration, setVerticalExaggeration] = useState(1.0)
   const [relativeHeight, setRelativeHeight] = useState(0)
   const [showControls, setShowControls] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<string | null>(null)
-  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const { detections, isLoading: detectionsLoading } = useRealtimeDetections()
 
@@ -63,6 +61,7 @@ export default function MapPage() {
         navigationHelpButton: true,
         skyAtmosphere: new Cesium.SkyAtmosphere(),
         geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
+        mercator: true,
       })
 
       viewer.scene.verticalExaggeration = verticalExaggeration
@@ -70,6 +69,7 @@ export default function MapPage() {
 
       viewer.scene.globe.enableLighting = true
       viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
+      viewer.scene.skyAtmosphere.show = true;
 
       // Add Photorealistic 3D Tiles
       try {
@@ -85,43 +85,43 @@ export default function MapPage() {
 
       if (detections.length) {
         detections.forEach((detection) => {
-        const riskLevel = detection.risk_assessment?.risk_level || "medium"
-        const confidence = detection.risk_assessment?.confidence || 0.5
+          const riskLevel = detection.risk_assessment?.risk_level || "medium"
+          const confidence = detection.risk_assessment?.confidence || 0.5
 
-        let pointColor = Cesium.Color.YELLOW
-        if (riskLevel === "high" || riskLevel === "critical") {
-          pointColor = Cesium.Color.ORANGERED
-        } else if (riskLevel === "low") {
-          pointColor = Cesium.Color.GREEN
-        }
+          let pointColor = Cesium.Color.YELLOW
+          if (riskLevel === "high" || riskLevel === "critical") {
+            pointColor = Cesium.Color.ORANGERED
+          } else if (riskLevel === "low") {
+            pointColor = Cesium.Color.GREEN
+          }
 
-        const type = riskLevel === "high" || riskLevel === "critical" ? "confirmed" : "suspected"
+          const type = riskLevel === "high" || riskLevel === "critical" ? "confirmed" : "suspected"
 
-        viewer.entities.add({
-          id: detection.id?.toString() || `detection-${Math.random()}`,
-          name: `Detection ${detection.id}`,
-          position: Cesium.Cartesian3.fromDegrees(Number(detection.longitude), Number(detection.latitude), 200),
-          point: {
-            pixelSize: 12,
-            color: pointColor,
-            outlineColor: Cesium.Color.WHITE,
-            outlineWidth: 2,
-          },
-          label: {
-            text: `Detection ${detection.id}`,
-            font: "14pt sans-serif",
-            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-            fillColor: Cesium.Color.WHITE,
-            outlineColor: Cesium.Color.BLACK,
-            outlineWidth: 2,
-            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-            pixelOffset: new Cesium.Cartesian2(0, -15),
-            showBackground: true,
-            backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
-            backgroundPadding: new Cesium.Cartesian2(8, 4),
-            disableDepthTestDistance: Number.POSITIVE_INFINITY,
-          },
-          description: `
+          viewer.entities.add({
+            id: detection.id?.toString() || `detection-${Math.random()}`,
+            name: `Detection ${detection.id}`,
+            position: Cesium.Cartesian3.fromDegrees(Number(detection.longitude), Number(detection.latitude), 200),
+            point: {
+              pixelSize: 12,
+              color: pointColor,
+              outlineColor: Cesium.Color.WHITE,
+              outlineWidth: 2,
+            },
+            label: {
+              text: `Detection ${detection.id}`,
+              font: "14pt sans-serif",
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              fillColor: Cesium.Color.WHITE,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 2,
+              verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+              pixelOffset: new Cesium.Cartesian2(0, -15),
+              showBackground: true,
+              backgroundColor: Cesium.Color.BLACK.withAlpha(0.7),
+              backgroundPadding: new Cesium.Cartesian2(8, 4),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            },
+            description: `
             <div style="font-family: sans-serif; color: #333; padding: 10px;">
               <h3 style="margin-bottom: 5px; color: ${type === "confirmed" ? "#d9534f" : "#f0ad4e"};">Detection ${detection.id}</h3>
               <p><strong>ID:</strong> ${detection.id}</p>
@@ -133,7 +133,7 @@ export default function MapPage() {
               <p><strong>Risk Level:</strong> ${riskLevel.toUpperCase()}</p>
             </div>
           `,
-        })
+          })
         })
       }
 
@@ -153,59 +153,6 @@ export default function MapPage() {
       console.error("Cesium initialization error:", err)
       setError(err instanceof Error ? err.message : String(err))
       setIsLoading(false)
-    }
-  }
-
-  const handleDetect = async () => {
-    if (!selectedFile) {
-      setSubmitError("Select an image to detect.")
-      return
-    }
-
-    if (!navigator.geolocation) {
-      setSubmitError("Geolocation is not available in this browser.")
-      return
-    }
-
-    setIsSubmitting(true)
-    setSubmitError(null)
-    setSubmitStatus(null)
-
-    try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-        })
-      })
-
-      const formData = new FormData()
-      formData.append("file", selectedFile, selectedFile.name)
-      formData.append("latitude", position.coords.latitude.toString())
-      formData.append("longitude", position.coords.longitude.toString())
-
-      const response = await fetch("/api/detect", {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const message = await response.text()
-        throw new Error(message || "Detection failed")
-      }
-
-      const data = await response.json()
-      const detectionCount = data?.metadata?.detection_count ?? data?.detections?.length ?? 0
-      const stored = data?.stored === true
-      setSubmitStatus(
-        stored
-          ? `Detection sent. ${detectionCount} detections.`
-          : `Detection completed (${detectionCount}). Not stored in database.`,
-      )
-    } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : "Detection failed")
-    } finally {
-      setIsSubmitting(false)
     }
   }
 
@@ -306,42 +253,9 @@ export default function MapPage() {
           <p style={{ margin: "5px 0", fontSize: "14px" }}>
             <strong>Focus:</strong> Nigeria (Lassa Endemic)
           </p>
-          {detections.length > 0 ? (
-            <p style={{ margin: "5px 0", fontSize: "12px", color: "#4ade80" }}>Live data active</p>
-          ) : (
-            <p style={{ margin: "5px 0", fontSize: "12px", color: "#f0ad4e" }}>No detections yet</p>
+          {detections.length > 0 && (
+            <p style={{ margin: "5px 0", fontSize: "12px", color: "#4ade80" }}>✓ Live data active</p>
           )}
-          <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={(event) => {
-                const file = event.target.files?.[0] || null
-                setSelectedFile(file)
-                setSubmitStatus(null)
-                setSubmitError(null)
-              }}
-              style={{ fontSize: "12px" }}
-            />
-            <button
-              onClick={handleDetect}
-              disabled={isSubmitting || !selectedFile}
-              style={{
-                padding: "8px",
-                backgroundColor: isSubmitting || !selectedFile ? "#555" : "#4a9eff",
-                border: "none",
-                borderRadius: "4px",
-                color: "white",
-                cursor: isSubmitting || !selectedFile ? "not-allowed" : "pointer",
-                fontSize: "12px",
-              }}
-            >
-              {isSubmitting ? "Detecting..." : "Run Detection"}
-            </button>
-            {submitError && <p style={{ margin: 0, fontSize: "12px", color: "#ff6b6b" }}>{submitError}</p>}
-            {submitStatus && <p style={{ margin: 0, fontSize: "12px", color: "#4ade80" }}>{submitStatus}</p>}
-          </div>
         </div>
 
         <div
@@ -517,11 +431,8 @@ export default function MapPage() {
           )}
         </div>
       </main>
+      <RemostarChatbot />
     </>
   )
 }
-
-
-
-
 

@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 async function callAgentAPI(payload: any) {
-  const baseUrl = process.env.AGENT_SERVICE_URL || "http://localhost:5003"
-  const response = await fetch(`${baseUrl}/agent/query`, {
+  const baseUrl = process.env.AGENT_SERVICE_URL || `http://localhost:${process.env.AGENT_PORT || "5003"}`
+  const endpoint = baseUrl.endsWith("/agent/query") ? baseUrl : `${baseUrl}/agent/query`
+  const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -24,6 +25,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result)
   } catch (error) {
     console.error("[v0] Agent query error:", error)
-    return NextResponse.json({ error: "Failed to process agent query" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Failed to process agent query", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 },
+    )
   }
 }
