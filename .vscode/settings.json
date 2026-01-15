@@ -1,3 +1,9 @@
 {
-    "terminal.integrated.fontLigatures.enabled": true
+    "terminal.integrated.fontLigatures.enabled": true,
+    "chat.tools.terminal.autoApprove": {
+        "/^python -m app$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
 }
