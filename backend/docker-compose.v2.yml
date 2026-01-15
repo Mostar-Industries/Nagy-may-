@@ -1,61 +1,64 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: skyhawk_postgres
+    env_file: .env
     environment:
-      POSTGRES_DB: mastomys
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-mastomys}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - skyhawk
+    restart: unless-stopped
 
-  # YOLO ML Service
   ml-service:
     build:
       context: ./ml_service
       dockerfile: Dockerfile
     container_name: skyhawk_ml
+    env_file: .env
     environment:
-      LOG_LEVEL: INFO
-      DEVICE: cpu
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      DEVICE: ${ML_DEVICE:-cpu}
+      DCX0_ENDPOINT: ${DCX0_ENDPOINT:-http://ollama:11434}
     ports:
-      - "5001:5000"
+      - "${ML_SERVICE_PORT:-5001}:5001"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - skyhawk
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # RTSP Capture Service
   capture-service:
     build:
       context: ./capture_service
       dockerfile: Dockerfile
     container_name: skyhawk_capture
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mastomys}
       SUPABASE_URL: ${SUPABASE_URL}
       SUPABASE_KEY: ${SUPABASE_KEY}
-      YOLO_API_URL: http://ml-service:5000
-      LOG_LEVEL: INFO
-      INFERENCE_INTERVAL: 5
+      YOLO_API_URL: http://ml-service:5001
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      INFERENCE_INTERVAL: ${INFERENCE_INTERVAL:-5}
     depends_on:
       ml-service:
         condition: service_healthy
@@ -63,18 +66,18 @@ services:
       - skyhawk
     restart: unless-stopped
 
-  # API Service
   api-service:
     build:
       context: ./MNTRK_API
       dockerfile: Dockerfile
     container_name: skyhawk_api
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
-      YOLO_API_URL: http://ml-service:5000
-      LOG_LEVEL: INFO
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mastomys}
+      YOLO_API_URL: http://ml-service:5001
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "5002:5000"
+      - "${API_SERVICE_PORT:-5002}:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -82,24 +85,25 @@ services:
         condition: service_healthy
     networks:
       - skyhawk
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Agent Service
   agent-service:
     build:
       context: ./MNTRK_Agent_API
       dockerfile: Dockerfile
     container_name: skyhawk_agent
+    env_file: .env
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mastomys
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mastomys}
       API_SERVICE_URL: http://api-service:5000
-      LOG_LEVEL: INFO
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
-      - "5003:5000"
+      - "${AGENT_SERVICE_PORT:-5003}:5000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -107,6 +111,7 @@ services:
         condition: service_healthy
     networks:
       - skyhawk
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s

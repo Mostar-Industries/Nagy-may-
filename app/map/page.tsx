@@ -71,6 +71,14 @@ export default function MapPage() {
       viewer.clock.currentTime = Cesium.JulianDate.fromIso8601("2024-01-15T12:00:00Z")
       viewer.scene.skyAtmosphere.show = true;
 
+      try {
+        const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(2275207);
+        viewer.scene.primitives.add(tileset);
+      } catch (error) {
+        console.log(error);
+      }
+
+
       // Add Photorealistic 3D Tiles
       try {
         const googleTileset = await Cesium.createGooglePhotorealistic3DTileset({
