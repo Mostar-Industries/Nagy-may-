@@ -17,18 +17,21 @@ export default function RecentDetections() {
   }
 
   const displayDetections = detections.slice(0, 10).map((d) => {
-    const envContext = (d.environmental_context as any) || {}
-    const riskContext = (d.risk_assessment as any) || {}
+    const envContext = d.environmental_context || {}
+    const riskContext = d.risk_assessment || {}
 
     return {
       id: d.id,
       time: new Date(d.detection_timestamp).toLocaleTimeString(),
       location: `(${d.latitude.toFixed(4)}, ${d.longitude.toFixed(4)})`,
-      species: envContext.species || "Mastomys natalensis",
-      speciesConfidence: envContext.species_confidence || riskContext.confidence || 0.85,
+      species: envContext.detections?.[0]?.species || "Mastomys natalensis",
+      speciesConfidence: envContext.detections?.[0]?.confidence || riskContext.confidence || 0.85,
       confidence: `${((riskContext.confidence || 0.85) * 100).toFixed(0)}%`,
       riskScore: `${((riskContext.risk_score || 0.5) * 100).toFixed(0)}%`,
-      riskLevel: riskContext.risk_level || "MEDIUM",
+      riskLevel: riskContext.risk_level?.toUpperCase() || "MEDIUM",
+      odu: riskContext.odu_pattern || "N/A",
+      state: envContext.consciousness_state || "DORMANT",
+      guidance: riskContext.ubuntu_guidance || "Monitoring required",
       source: d.source || "unknown",
     }
   })
@@ -89,7 +92,10 @@ export default function RecentDetections() {
                 Risk Level
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Risk Score
+                Ifá Odu / Consciousness
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Ubuntu Guidance
               </th>
             </tr>
           </thead>
@@ -132,13 +138,15 @@ export default function RecentDetections() {
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getRiskLevelColor(detection.riskLevel)}`}
                     >
-                      {detection.riskLevel}
+                      {detection.riskLevel} {detection.riskScore}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200">
-                      {detection.riskScore}
-                    </span>
+                    <div className="text-sm font-medium text-amber-600 dark:text-amber-400">{detection.odu.replace('_', ' ')}</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-tighter">{detection.state}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title={detection.guidance}>
+                    {detection.guidance}
                   </td>
                 </tr>
               ))

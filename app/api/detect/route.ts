@@ -45,49 +45,14 @@ export async function POST(request: NextRequest) {
 
     const mlData = await mlResponse.json()
 
-    let stored = false
-    let insertError: string | null = null
-
-    if (latitude !== null && longitude !== null) {
-      const supabase = await createClient()
-      const detections = Array.isArray(mlData?.detections) ? mlData.detections : []
-      const detectionCount = mlData?.metadata?.detection_count ?? detections.length
-      const avgConfidence =
-        detections.length > 0
-          ? detections.reduce((sum: number, d: any) => sum + (d?.confidence || 0), 0) / detections.length
-          : 0
-
-      const { error } = await supabase
-        .from("detection_patterns")
-        .insert([
-          {
-            latitude,
-            longitude,
-            detection_timestamp: new Date().toISOString(),
-            detection_count: detectionCount,
-            source: "ml_upload",
-            environmental_context: { source: "upload" },
-            risk_assessment: {
-              risk_score: mlData?.risk_score ?? null,
-              risk_level: mlData?.risk_level ?? null,
-              confidence: avgConfidence,
-              detections,
-            },
-          },
-        ])
-        .select()
-
-      if (error) {
-        insertError = error.message
-      } else {
-        stored = true
-      }
-    }
+    // Persistence is now handled by the backend (GridManager) automatically
+    // when consciousness analysis is triggered.
+    const stored = mlData?.enhanced_by === 'remostar_consciousness'
 
     return NextResponse.json({
       ...mlData,
       stored,
-      insert_error: insertError,
+      insert_error: null,
     })
   } catch (error) {
     console.error("[v0] Detect proxy error:", error)

@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 async function callAgentAPI(payload: any) {
-  const baseUrl = process.env.AGENT_SERVICE_URL || `http://localhost:${process.env.AGENT_PORT || "5003"}`
-  const endpoint = baseUrl.endsWith("/agent/query") ? baseUrl : `${baseUrl}/agent/query`
+  // Use API_SERVICE_URL (5002) for RAG queries
+  const baseUrl = process.env.API_SERVICE_URL || `http://localhost:5002`
+  const endpoint = `${baseUrl}/rag-query`
+
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -11,7 +13,7 @@ async function callAgentAPI(payload: any) {
 
   if (!response.ok) {
     const message = await response.text()
-    throw new Error(message || "Agent service error")
+    throw new Error(message || "REMOSTAR API error")
   }
 
   return response.json()

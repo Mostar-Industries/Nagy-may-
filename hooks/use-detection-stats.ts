@@ -10,6 +10,7 @@ export interface DetectionStats {
   latestTime: string | null
   byRegion: Record<string, number>
   detections24h: number
+  consciousnessState: string
 }
 
 export function useDetectionStats(detections: Detection[]): DetectionStats {
@@ -24,6 +25,16 @@ export function useDetectionStats(detections: Detection[]): DetectionStats {
       latestTime: null,
       byRegion: {},
       detections24h: 0,
+      consciousnessState: "DORMANT",
+    }
+
+    // Sort by timestamp to get the truly latest
+    const sorted = [...detections].sort(
+      (a, b) => new Date(b.detection_timestamp).getTime() - new Date(a.detection_timestamp).getTime(),
+    )
+
+    if (sorted.length > 0) {
+      stats.consciousnessState = sorted[0].environmental_context?.consciousness_state || "DORMANT"
     }
 
     let confidenceSum = 0

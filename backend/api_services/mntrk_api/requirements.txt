@@ -1,0 +1,36 @@
+# Core API framework
+connexion[swagger-ui]==2.14.2
+flask<3.0.0
+flask-cors>=4.0.0
+werkzeug<3.0.0
+
+# Data handling
+requests>=2.31.0
+httpx>=0.24.0
+python-dateutil>=2.8.0
+pydantic>=2.0.0
+
+# Database integration
+supabase>=2.0.0
+psycopg2-binary>=2.9.0
+
+# Consciousness engine dependencies
+neo4j>=5.0.0
+python-dotenv>=1.0.0
+
+# Utilities
+six>=1.16.0
+setuptools>=68.0.0
+typing-extensions>=4.7.0
+
+# JSON processing
+ujson>=5.8.0
+
+# Async support
+# Knowledge Graph & RAG
+langchain>=0.1.0,<0.2.0
+langchain-community>=0.0.30
+langchain-openai
+langchain-experimental
+neo4j>=5.12.0
+openai>=1.6.0

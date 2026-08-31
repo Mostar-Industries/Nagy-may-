@@ -23,10 +23,10 @@ export default function StatsCards() {
       color: "red",
     },
     {
-      label: "Avg Confidence",
-      value: isLoadingDetections ? "..." : `${(stats.avgConfidence * 100).toFixed(1)}%`,
-      change: "Model performance metric",
-      icon: "🧠",
+      label: "Consciousness State",
+      value: isLoadingDetections ? "..." : stats.consciousnessState,
+      change: "Mostar Grid awareness level",
+      icon: "⚡",
       color: "purple",
     },
     {

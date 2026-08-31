@@ -11,8 +11,19 @@ export interface Detection {
   detection_timestamp: string
   detection_count: number
   source: string
-  environmental_context: Record<string, any>
-  risk_assessment: Record<string, any>
+  environmental_context: {
+    consciousness_state?: string
+    detections?: any[]
+    [key: string]: any
+  }
+  risk_assessment: {
+    risk_score?: number
+    risk_level?: string
+    odu_pattern?: string
+    ubuntu_guidance?: string
+    reasoning?: string[]
+    [key: string]: any
+  }
   created_at: string
 }
 
